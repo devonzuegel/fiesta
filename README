@@ -1,0 +1,5 @@
+This is the data/script package for Homework 6 of CS 124 at Stanford.
+
+This data package contains bitext data for two language pairs, French-English (fr-en) and Spanish-English (es-en). Training data are selected from the Europarl-v7 corpus, and dev/test data are from its corresponding development set.
+
+All data have been tokenized such that each line is a sentence, and all tokens are separated by spaces. Special characters such as apostrophes are escaped in a form similar to HTML special characters (&apos;). Lines with the same line number from the beginning of the files of corresponding languages are source/target sentence pairs (i.e. source sentence and its translation).
