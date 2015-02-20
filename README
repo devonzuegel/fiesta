@@ -4,4 +4,8 @@ This data package contains bitext data for two language pairs, French-English (f
 
 All data have been tokenized such that each line is a sentence, and all tokens are separated by spaces. Special characters such as apostrophes are escaped in a form similar to HTML special characters (&apos;). Lines with the same line number from the beginning of the files of corresponding languages are source/target sentence pairs (i.e. source sentence and its translation).
 
-pooop
+- word order/ lack of words in questions 
+	Do you want to go to the movies tonight?
+	¿Quieres ir al cine esta noche?
+	(Spanish speakers will likely leave out do)
+- adjective noun order (bruja verde vs green witch)
