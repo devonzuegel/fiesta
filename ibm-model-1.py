@@ -69,10 +69,10 @@ class M1:
   def sentence_pairs(sp_doc, en_doc):
     tuples = []
     for en_sentence in en_doc:
-      for en_word in en_sentence:
+      for en_word in en_sentence.split():
         self.en_vocab += en_word
     for sp_sentence in sp_doc:
-      for sp_word in sp_doc:
+      for sp_word in sp_doc.split():
         self.sp_vocab += sp_word
       
     for i, sp_sentence in enumerate(sp_doc):
