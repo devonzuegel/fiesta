@@ -75,7 +75,7 @@ class M1:
    
     #MASSIVE LOOPDELOOP
     self.counts = dict.fromkeys(self.sp_vocab, dict.fromkeys(self.en_vocab, 0))
-    self.total_f = dict.fromkeys(self.sp_vocab, 0)
+    self.total_s = dict.fromkeys(self.sp_vocab, 0)
     for pair in sentence_pairs:
       self.total_e = dict.fromkeys(self.en_vocab, 0)
       sp_sentence = pair[0]
@@ -83,21 +83,27 @@ class M1:
 
       for english_word in en_sentence.split():
         for spanish_word in sp_sentence.split():
-          temp = self.transl_probs[spanish_word]
-          # print temp
-          self.total_e[english_word] += temp[english_word]
-    #   for english_word in en_sentence:
-    #     for spanish_word in sp_sentence:
-    #       self.counts[spanish_word][english_word] += self.transl_probs[english_word][spanish_word] / self.total_e[english_word]
-    #       self.total_s[spanish_word] += self.transl_probs[english_word][spanish_word] / self.total_e[english_word]
-    # for spanish_word in self.sp_vocab:
-    #   for english_word in self.en_vocab:
-    #     self.transl_probs[spanish_word][english_word] = self.count[spanish_word][english_word] / self.total_s[spanish_word]
+          self.total_e[english_word] += self.transl_probs[spanish_word][english_word]
 
+      for english_word in en_sentence.split():
+        for spanish_word in sp_sentence.split():
+          self.counts[spanish_word][english_word] += self.transl_probs[spanish_word][english_word] / self.total_e[english_word]
+          self.total_s[spanish_word] += self.transl_probs[spanish_word][english_word] / self.total_e[english_word]
 
+    for spanish_word in self.sp_vocab:
+      for english_word in self.en_vocab:
+        self.transl_probs[spanish_word][english_word] = self.counts[spanish_word][english_word] / self.total_s[spanish_word]
 
     
-
+    #PRint out highest probability pairs
+    for spanish_word in self.transl_probs.keys():
+      max_prob_engligh_word = "poop"
+      max_prob = 0
+      for english_word in self.transl_probs[spanish_word].keys():
+        if self.transl_probs[spanish_word][english_word] > max_prob:
+          max_prob = self.transl_probs[spanish_word][english_word]
+          max_prob_engligh_word = english_word
+      print spanish_word + ":" + max_prob_engligh_word
 
   def find_probabilities(self):
     return dict.fromkeys(self.sp_vocab, dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab)))
