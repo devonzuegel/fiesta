@@ -1,17 +1,11 @@
-
 import sys
 import getopt
 import os
 import math
 import collections
 import re
-import unicodedata
 
 PATH_TO_DEV = './es-en/dev/'
-
-
-def remove_accents(data):
-  return data.encode("utf8")
 
 ##
   # initialize transl_prob(e|f) uniformly
@@ -59,9 +53,9 @@ class M1:
     self.sp_vocab = set()
 
     sp_doc = get_lines_of_file('%snewstest2012.es' % (PATH_TO_DEV))
-    en_doc = get_lines_of_file('%snewstest2012.en' % (PATH_TO_DEV))
+    # en_doc = get_lines_of_file('%snewstest2012.en' % (PATH_TO_DEV))
 
-    sentence_pairs = self.get_sentence_pairs(sp_doc, en_doc)
+    # sentence_pairs = self.get_sentence_pairs(sp_doc, en_doc)
 
 
     ##
@@ -69,41 +63,35 @@ class M1:
     # to probability of that english word beign the correct translation. Every translation
     # probability is initialized to 1/#english words since every word is equally likely to 
     # be the correct translation.)
-    self.transl_probs = self.find_probabilities()
+    # self.transl_probs = self.find_probabilities()
 
-    #Initialize counts and totals to be used in main loop. 
+    # #Initialize counts and totals to be used in main loop. 
    
-    #MASSIVE LOOPDELOOP
-    self.counts = dict.fromkeys(self.sp_vocab, dict.fromkeys(self.en_vocab, 0))
-    self.total_s = dict.fromkeys(self.sp_vocab, 0)
-    for pair in sentence_pairs:
-      self.total_e = dict.fromkeys(self.en_vocab, 0)
-      sp_sentence = pair[0]
-      en_sentence = pair[1]
+    # #MASSIVE LOOPDELOOP
+    # self.counts = dict.fromkeys(self.sp_vocab, dict.fromkeys(self.en_vocab, 0))
+    # self.total_f = dict.fromkeys(self.sp_vocab, 0)
+    # for pair in sentence_pairs:
+    #   self.total_e = dict.fromkeys(self.en_vocab, 0)
+    #   sp_sentence = pair[0]
+    #   en_sentence = pair[1]
 
-      for english_word in en_sentence.split():
-        for spanish_word in sp_sentence.split():
-          self.total_e[english_word] += self.transl_probs[spanish_word][english_word]
+    #   for english_word in en_sentence.split():
+    #     for spanish_word in sp_sentence.split():
+    #       temp = self.transl_probs[spanish_word]
+    #       # print temp
+    #       self.total_e[english_word] += temp[english_word]
+    # #   for english_word in en_sentence:
+    # #     for spanish_word in sp_sentence:
+    # #       self.counts[spanish_word][english_word] += self.transl_probs[english_word][spanish_word] / self.total_e[english_word]
+    # #       self.total_s[spanish_word] += self.transl_probs[english_word][spanish_word] / self.total_e[english_word]
+    # # for spanish_word in self.sp_vocab:
+    # #   for english_word in self.en_vocab:
+    # #     self.transl_probs[spanish_word][english_word] = self.count[spanish_word][english_word] / self.total_s[spanish_word]
 
-      for english_word in en_sentence.split():
-        for spanish_word in sp_sentence.split():
-          self.counts[spanish_word][english_word] += self.transl_probs[spanish_word][english_word] / self.total_e[english_word]
-          self.total_s[spanish_word] += self.transl_probs[spanish_word][english_word] / self.total_e[english_word]
 
-    for spanish_word in self.sp_vocab:
-      for english_word in self.en_vocab:
-        self.transl_probs[spanish_word][english_word] = self.counts[spanish_word][english_word] / self.total_s[spanish_word]
 
     
-    #PRint out highest probability pairs
-    for spanish_word in self.transl_probs.keys():
-      max_prob_engligh_word = "poop"
-      max_prob = 0
-      for english_word in self.transl_probs[spanish_word].keys():
-        if self.transl_probs[spanish_word][english_word] > max_prob:
-          max_prob = self.transl_probs[spanish_word][english_word]
-          max_prob_engligh_word = english_word
-      print spanish_word + ":" + max_prob_engligh_word
+
 
   def find_probabilities(self):
     return dict.fromkeys(self.sp_vocab, dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab)))
@@ -132,11 +120,9 @@ def get_lines_of_file(fileName):
   lines = []
   with open(fileName,'r') as f: 
     for line in f:
-      # clean_line = line.encode('utf-8')
-      # remove_accents(unicode(line))
-      # clean_line = ' '.join(re.sub(ur'[^\w ]', '', remove_accents(line).lower()).split())
-      # lines.append(clean_line)
-      print line
+      clean_line = ' '.join(re.sub(r'[^\w ]', '', line.lower()).split())
+      lines.append(clean_line)
+      print clean_line
   return lines
 
 
@@ -147,4 +133,5 @@ def main():
 
 if __name__ == "__main__":
   main()
+
   
