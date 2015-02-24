@@ -1,11 +1,17 @@
+
 import sys
 import getopt
 import os
 import math
 import collections
 import re
+import unicodedata
 
 PATH_TO_DEV = './es-en/dev/'
+
+
+def remove_accents(data):
+  return data.encode("utf8")
 
 ##
   # initialize transl_prob(e|f) uniformly
@@ -73,15 +79,12 @@ class M1:
     for pair in sentence_pairs:
       self.total_e = dict.fromkeys(self.en_vocab, 0)
       sp_sentence = pair[0]
-      #print sp_sentence
       en_sentence = pair[1]
-      #print en_sentence
 
       for english_word in en_sentence.split():
         for spanish_word in sp_sentence.split():
           temp = self.transl_probs[spanish_word]
           # print temp
-
           self.total_e[english_word] += temp[english_word]
     #   for english_word in en_sentence:
     #     for spanish_word in sp_sentence:
@@ -123,8 +126,11 @@ def get_lines_of_file(fileName):
   lines = []
   with open(fileName,'r') as f: 
     for line in f:
-      clean_line = ' '.join(re.sub(r'[^A-z ]', '', line.lower()).split())
-      lines.append(clean_line)
+      # clean_line = line.encode('utf-8')
+      # remove_accents(unicode(line))
+      # clean_line = ' '.join(re.sub(ur'[^\w ]', '', remove_accents(line).lower()).split())
+      # lines.append(clean_line)
+      print line
   return lines
 
 
@@ -135,5 +141,4 @@ def main():
 
 if __name__ == "__main__":
   main()
-
   
