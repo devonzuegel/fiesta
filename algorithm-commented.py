@@ -1,3 +1,4 @@
+
 initialize transl_prob(e|f) uniformly
 do until convergence
   set count(e|f) to 0 for all e,f
