@@ -50,16 +50,21 @@ class M1:
     # Build vocab for english
 
     # n = height
-    # self.transl_probs = build_hash_table(1/n)
-    # self.counts = build_hash_table(0)
+    self.transl_probs = build_hash_table(1/n)
+    self.counts = build_hash_table(0)
 
     # total
 
     self.transl_prob = self.init_transl_probs();
 
 
+  def find_probabilities
+
   # Single-layer
   def build_dict(doc_from_single_lang):
+    
+    return dict.fromkeys()
+
     pass
 
 
@@ -92,13 +97,9 @@ def segmentWords(s):
 
 
 def main():
-  dict = {}
-  dict['perro'] = collections.defaultdict(lambda: 1)
-  dict['tengo'] = collections.defaultdict(lambda: 2)
+  m = new M1
+  
 
-  print dict['perro']['dog']
-  dict['perro']['dog'] += .2
-  print dict['perro']['dog']
 
 
 if __name__ == "__main__":
