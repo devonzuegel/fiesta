@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sys
 import getopt
 import os
@@ -5,8 +7,31 @@ import math
 import collections
 import copy
 import re
+import pprint
 
+pp = pprint.PrettyPrinter(indent=3)
 PATH_TO_DEV = './es-en/dev/'
+UTF_SPECIAL_CHARS = {
+  '\\xc2\\xa1' : '',
+  '\\xc2\\xbf' : '',
+  '\\xc3\\x81' : 'A',
+  '\\xc3\\x89' : 'E',
+  '\\xc3\\x8d' : 'I',
+  '\\xc3\\x91' : 'N',
+  '\\xc3\\x93' : 'O',
+  '\\xc3\\x9a' : 'U',
+  '\\xc3\\x9c' : 'U',
+  '\\xc3\\xa1' : 'A',
+  '\\xc3\\xa9' : 'E',
+  '\\xc3\\xad' : 'I',
+  '\\xc3\\xb1' : 'N',
+  '\\xc3\\xb3' : 'O',
+  '\\xc3\\xba' : 'U',
+  '\\xc3\\xbc' : 'U',
+  '\'' : '',
+  '\\n' : '',
+  '&quot;' : ''
+}
 
 ##
   # initialize transl_prob(e|f) uniformly
@@ -44,8 +69,6 @@ PATH_TO_DEV = './es-en/dev/'
   #     'dog': .3
   #   }
   # }
-
-
 class M1:
   # IBM Model1 initialization
   def __init__(self):
@@ -60,18 +83,12 @@ class M1:
 
     sentence_pairs = self.get_sentence_pairs(sp_doc, en_doc)
 
-
-    ##
-    # Initialize transl_probs uniformly (hash from spanish words to hash from english words
-    # to probability of that english word beign the correct translation. Every translation
-    # probability is initialized to 1/#english words since every word is equally likely to 
-    # be the correct translation.)
-
+    # ##
+    # # Initialize transl_probs uniformly (hash from spanish words to hash from english words
+    # # to probability of that english word beign the correct translation. Every translation
+    # # probability is initialized to 1/#english words since every word is equally likely to 
+    # # be the correct translation.)
     self.transl_probs = self.find_probabilities()
-    # temp_d = dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab))
-    # self.transl_probs = {}
-    # for key in self.sp_vocab:
-    #   self.transl_probs[key] = copy.deepcopy(temp_d)
 
     #Initialize counts and totals to be used in main loop. 
    
@@ -101,7 +118,7 @@ class M1:
         self.transl_probs[spanish_word][english_word] = (self.counts[spanish_word][english_word] / self.total_s[spanish_word])
         print spanish_word + ":" + english_word + ":" + str(self.transl_probs[spanish_word][english_word])
 
-    #PRint out highest probability pairs
+    #PRint out highest probability pairs: NOT PART OF ALGORITHM
     for spanish_word in self.transl_probs.keys():
       max_prob_engligh_word = "poop"
       max_prob = 0
@@ -110,6 +127,7 @@ class M1:
           max_prob = self.transl_probs[spanish_word][english_word]
           max_prob_engligh_word = english_word
       print spanish_word + ":" + max_prob_engligh_word + ":" + str(max_prob)
+
 
   def find_probabilities(self):
     temp = dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab))
@@ -142,8 +160,31 @@ def get_lines_of_file(fileName):
   lines = []
   with open(fileName,'r') as f: 
     for line in f:
-      clean_line = ' '.join(re.sub(r'[^A-z ]', '', line.lower()).split())
-      lines.append(clean_line)
+      ##
+      # First we lowercase the line in order to treat capitalized
+      # and non-capitalized instances of a single word the same.
+      ##
+      # Then, repr() forces the output into a string literal UTF-8
+      # format, with characters such as '\xc3\x8d' representing
+      # special characters not found in typical ASCII.
+      line = repr(line.lower())
+      
+      ##
+      # Replace all instances of UTF-8 character codes with
+      # uppercase letters of the nearest ASCII equivalent. For
+      # instance, 'á' becomes '\\xc3\\xa1' becomes 'A'. The
+      # purpose of making these special characters uppercase is
+      # to differentiate them from the rest of the non-special
+      # characters, which are all lowercase.
+      for utf8_code, replacement_char in UTF_SPECIAL_CHARS.items():
+        line = line.replace(utf8_code, replacement_char)
+      
+      # Remove any non-whitespace, non-alphabetic characters.
+      line = re.sub(r'[^A-z ]', '', line)
+      
+      # Substitute multiple whitespace with single whitespace, then
+      # append the cleaned line to the list.
+      lines.append(' '.join(line.split()))
   return lines
 
 
