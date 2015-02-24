@@ -56,19 +56,27 @@ class M1:
     # total
 
     self.transl_prob = self.init_transl_probs();
+    self.en_vocab = []
+    self.sp_vocab = []
 
 
   # Single-layer
   def build_dict(doc_from_single_lang):
     pass
 
-
-  # [
-  #   ("El perro", "The dog")
-  #   ("El chico", "The boy")
-  # ]
+  #takes in an array of sentences of sp and en words
+  #returns tuples in the form of (sp sentence, en sentence)
   def sentence_pairs(sp_doc, en_doc):
-    pass
+    tuples = []
+    for en_sentence in en_doc:
+      for en_word in en_sentence:
+        self.en_vocab += en_word
+    for sp_sentence in sp_doc:
+      for sp_word in sp_doc:
+        self.sp_vocab += sp_word
+      
+    for i, sp_sentence in enumerate(sp_doc):
+      tuples += (sp_doc[i], en_doc[i])
 
 def readFile(fileName):
   """
