@@ -2,6 +2,10 @@
 
 [Zoe Robert](mailto:zrobert7@stanford.edu), [Devon Zuegel](mailto:devonz@cs.stanford.edu), and [John Luttig](mailto:jluttig@stanford.edu)
 
+$$
+\frac{1}{3}
+$$
+
 ## IBM Model 1
 - A **statistical alignment** algorithm
 - We're looking for the most likely English word for a Spanish word (e.g. "dog") based off our knowledge of co-occurrences within sentences.
