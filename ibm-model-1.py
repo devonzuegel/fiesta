@@ -87,7 +87,17 @@ class M1:
       for english_word in self.en_vocab:
         self.transl_probs[spanish_word][english_word] = self.counts[spanish_word][english_word] / self.total_s[spanish_word]
 
-    print self.transl_probs
+    
+    #PRint out highest probabili
+    #print self.transl_probs
+    for spanish_word in self.transl_probs.keys():
+      max_prob_engligh_word = "poop"
+      max_prob = 0 
+      for english_word in self.transl_probs[spanish_word].keys():
+        if self.transl_probs[spanish_word][english_word] > max_prob:
+          max_prob = self.transl_probs[spanish_word][english_word]
+          max_prob_engligh_word = english_word
+      print spanish_word + ":" + english_word
 
     
 
