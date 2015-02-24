@@ -52,26 +52,50 @@ class M1:
     # Build vocab for spanish
     # Build vocab for english
 
-    # n = height
-    # self.transl_probs = build_hash_table(1/n)
-    # self.counts = build_hash_table(0)
+    #Isolate pairings from documents 
+    self.en_vocab = []
+    self.sp_vocab = []
 
-    # total
+    sp_doc = get_lines_of_file('%snewstest2012.es' % (PATH_TO_DEV))
+    en_doc = get_lines_of_file('%snewstest2012.en' % (PATH_TO_DEV))
 
-    self.transl_prob = self.init_transl_probs();
+    sentence_pairs = self.get_sentence_pairs(sp_doc, en_doc)
+
+    print sentence_pairs[0]
+
+    ##
+    # Initialize transl_probs uniformly (hash from spanish words to hash from english words
+    # to probability of that english word beign the correct translation. Every translation
+    # probability is initialized to 1/#english words since every word is equally likely to 
+    # be the correct translation.)
+    self.transl_probs = dict.fromkeys(self.sp_vocab, dict.fromkeys(self.en_vocab, 1/len(self.en_vocab)))
 
 
-  # Single-layer
-  def build_dict(doc_from_single_lang):
+    #Initialize counts and totals to be used in main loop. 
+    self.counts = dict.fromkeys(self.sp_vocab, dict.fromkeys(self.en_vocab, 0))
+    self.total = dict.fromkeys(self.sp_vocab, 0)
+    self.total_s = dict.fromkeys(self.en_vocab, 0)
+
+
+  def find_probabilities():
     pass
 
 
-  # [
-  #   ("El perro", "The dog")
-  #   ("El chico", "The boy")
-  # ]
-  def sentence_pairs(sp_doc, en_doc):
-    pass
+  #takes in an array of sentences of sp and en words
+  #returns tuples in the form of (sp sentence, en sentence)
+  def get_sentence_pairs(self, sp_doc, en_doc):
+    tuples = []
+    for en_sentence in en_doc:
+      for en_word in en_sentence.split(' '):
+        self.en_vocab += en_word
+    for sp_sentence in sp_doc:
+      for sp_word in sp_sentence.split(' '):
+        self.sp_vocab += sp_word
+      
+    for i, sp_sentence in enumerate(sp_doc):
+      tuples.append((sp_doc[i], en_doc[i]))
+    return tuples
+
 
 ##
 # Code for reading a file.  you probably don't want to modify anything here, 
@@ -86,17 +110,11 @@ def get_lines_of_file(fileName):
 
 
 def main():
-  dict = {}
-  dict['perro'] = collections.defaultdict(lambda: 1)
-  dict['tengo'] = collections.defaultdict(lambda: 2)
-
+  m = M1()
+  # m.find_probabilities()
+  
 
 if __name__ == "__main__":
   main()
-  spanish = get_lines_of_file('%snewstest2012.es' % (PATH_TO_DEV))
-  english = get_lines_of_file('%snewstest2012.en' % (PATH_TO_DEV))
-
-  print spanish
-  print english
 
   
