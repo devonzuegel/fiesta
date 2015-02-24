@@ -3,6 +3,9 @@ import getopt
 import os
 import math
 import collections
+import re
+
+PATH_TO_DEV = './es-en/dev/'
 
 ##
   # initialize transl_prob(e|f) uniformly
@@ -70,25 +73,16 @@ class M1:
   def sentence_pairs(sp_doc, en_doc):
     pass
 
-def readFile(fileName):
-  """
-  * Code for reading a file.  you probably don't want to modify anything here, 
-  * unless you don't like the way we segment files.
-  """
-  contents = []
-  f = open(fileName)
-  for line in f:
-    contents.append(line)
-  f.close()
-  result = segmentWords('\n'.join(contents)) 
-  return result
-
-
-def segmentWords(s):
-  """
-   * Splits lines on whitespace for file reading
-  """
-  return s.split()
+##
+# Code for reading a file.  you probably don't want to modify anything here, 
+# unless you don't like the way we segment files.
+def get_lines_of_file(fileName):
+  lines = []
+  with open(fileName,'r') as f: 
+    for line in f:
+      clean_line = ' '.join(re.sub(r'[^A-z ]', '', line.lower()).split())
+      lines.append(clean_line)
+  return lines
 
 
 def main():
@@ -96,11 +90,13 @@ def main():
   dict['perro'] = collections.defaultdict(lambda: 1)
   dict['tengo'] = collections.defaultdict(lambda: 2)
 
-  print dict['perro']['dog']
-  dict['perro']['dog'] += .2
-  print dict['perro']['dog']
-
 
 if __name__ == "__main__":
-    main()
-    # print readFile('./es-en/dev/newstest2012.en')
+  main()
+  spanish = get_lines_of_file('%snewstest2012.es' % (PATH_TO_DEV))
+  english = get_lines_of_file('%snewstest2012.en' % (PATH_TO_DEV))
+
+  print spanish
+  print english
+
+  
