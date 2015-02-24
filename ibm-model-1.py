@@ -2,6 +2,7 @@ import sys
 import getopt
 import os
 import math
+import collections
 
 ##
   # initialize transl_prob(e|f) uniformly
@@ -40,6 +41,7 @@ import math
   #   }
   # }
 
+
 class M1:
   # IBM Model1 initialization
   def __init__(self):
@@ -55,16 +57,17 @@ class M1:
 
     self.transl_prob = self.init_transl_probs();
 
-  # Two layers
-  def build_hash_table():
-    pass
-
-  # Update all values in second layer
-  def set_hash_table_vals():
-    pass
 
   # Single-layer
-  def build_dict():
+  def build_dict(doc_from_single_lang):
+    pass
+
+
+  # [
+  #   ("El perro", "The dog")
+  #   ("El chico", "The boy")
+  # ]
+  def sentence_pairs(sp_doc, en_doc):
     pass
 
 def readFile(fileName):
@@ -80,6 +83,7 @@ def readFile(fileName):
   result = segmentWords('\n'.join(contents)) 
   return result
 
+
 def segmentWords(s):
   """
    * Splits lines on whitespace for file reading
@@ -88,9 +92,15 @@ def segmentWords(s):
 
 
 def main():
-  print 'Hi!'
-  # (options, args) = getopt.getopt(sys.argv[1:], 'f')
+  dict = {}
+  dict['perro'] = collections.defaultdict(lambda: 1)
+  dict['tengo'] = collections.defaultdict(lambda: 2)
+
+  print dict['perro']['dog']
+  dict['perro']['dog'] += .2
+  print dict['perro']['dog']
+
 
 if __name__ == "__main__":
     main()
-    print readFile('./es-en/dev/newstest2012.en')
+    # print readFile('./es-en/dev/newstest2012.en')
