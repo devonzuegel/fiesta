@@ -1,29 +1,49 @@
-## Notes
-### IBM Model 1
+# Fiesta: README
+
+Zoe Roberts, [Devon Zuegel](mailto:devonz@cs.stanford.edu), and John Luttig
+
+## IBM Model 1
 - A **statistical alignment** algorithm
 - We're looking for the most likely English word for a Spanish word (e.g. "dog") based off our knowledge of co-occurrences within sentences.
 
 
 The general IBM Model 1 generative story for how we generate a Spanish sentence from an English sentence `E = e1,e2,...,ei` of length `i`:
 1. Choose a length `j` for the Spanish sentence, henceforth `F = f1, f2,..., fj`.
-2. Now choose an alignment `A = a1,a2,...,aj` between the English and Spanish
+2. Now choose an alignment `A = a_1,a_2, ... ,a_j` between the English and Spanish
 sentences.
 3. Now for each position `j` in the Spanish sentence, choose a Spanish word `fj` by translating the English word that is aligned to it.
 
 Further information on p. 880 of the textbook.
 
+## Psuedocode
 
-### Psuedocode
+```
+initialize transl_prob(e|f) uniformly
+do until convergence
+  set count(e|f) to 0 for all e,f
+  set total(f) to 0 for all f
+  for all sentence pairs (e_s,f_s)
+    set total_s(e) = 0 for all e
+    for all words e in e_s
+      for all words f in f_s
+        total_s(e) += transl_prob(e|f)
+    for all words e in e_s
+      for all words f in f_s
+        count(e|f) += transl_prob(e|f) / total_s(e)
+        total(f)   += transl_prob(e|f) / total_s(e)
+  for all f
+    for all e
+      transl_prob(e|f) = count(e|f) / total(f)
+```
 
 
-
-## Useful resources & links
+# Useful resources & links
 - [Pseudocode](http://www.ims.uni-stuttgart.de/institut/mitarbeiter/fraser/readinggroup/model1.html)
 - [An implementation](https://github.com/kylebgorman/model1/blob/master/m1.py)
 - [p. 880 of the textbook](https://web.stanford.edu/class/cs124/restricted/ed2mt.pdf)
 
 
-### Expectation-Maximization Statistical Machine Translation (EM Statistical MT)
+## Expectation-Maximization Statistical Machine Translation (EM Statistical MT)
 Requires 3 components:
 - a language model to compute `P(E)` (the prior)
 - a translation model to compute `P(S|E)` ()
