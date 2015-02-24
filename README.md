@@ -2,9 +2,6 @@
 
 [Zoe Robert](mailto:zrobert7@stanford.edu), [Devon Zuegel](mailto:devonz@cs.stanford.edu), and [John Luttig](mailto:jluttig@stanford.edu)
 
-$$
-\frac{1}{3}
-$$
 
 ## IBM Model 1
 - A **statistical alignment** algorithm
@@ -23,13 +20,12 @@ Further information on p. 880 of the textbook.
 ## To Do
 
 - [ ] logs
-
 - [ ] just reset at each iteration or completely recreate? (applies to multiple data structures)
 
 
 ## Pseudocode
 
-```
+```python
 initialize transl_prob(e|f) uniformly
 do until convergence
   set count(e|f) to 0 for all e,f
