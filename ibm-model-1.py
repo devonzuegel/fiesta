@@ -88,19 +88,15 @@ class M1:
         self.transl_probs[spanish_word][english_word] = self.counts[spanish_word][english_word] / self.total_s[spanish_word]
 
     
-    #PRint out highest probabili
-    #print self.transl_probs
+    #PRint out highest probability pairs
     for spanish_word in self.transl_probs.keys():
       max_prob_engligh_word = "poop"
-      max_prob = 0 
+      max_prob = 0
       for english_word in self.transl_probs[spanish_word].keys():
         if self.transl_probs[spanish_word][english_word] > max_prob:
           max_prob = self.transl_probs[spanish_word][english_word]
           max_prob_engligh_word = english_word
-      print spanish_word + ":" + english_word
-
-    
-
+      print spanish_word + ":" + max_prob_engligh_word
 
   def find_probabilities(self):
     return dict.fromkeys(self.sp_vocab, dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab)))
