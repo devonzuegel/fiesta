@@ -48,10 +48,6 @@ PATH_TO_DEV = './es-en/dev/'
 class M1:
   # IBM Model1 initialization
   def __init__(self):
-    # Lowercase everything
-    # Build vocab for spanish
-    # Build vocab for english
-
     #Isolate pairings from documents 
     self.en_vocab = []
     self.sp_vocab = []
@@ -61,15 +57,12 @@ class M1:
 
     sentence_pairs = self.get_sentence_pairs(sp_doc, en_doc)
 
-    print sentence_pairs[0]
-
     ##
     # Initialize transl_probs uniformly (hash from spanish words to hash from english words
     # to probability of that english word beign the correct translation. Every translation
     # probability is initialized to 1/#english words since every word is equally likely to 
     # be the correct translation.)
-    self.transl_probs = dict.fromkeys(self.sp_vocab, dict.fromkeys(self.en_vocab, 1/len(self.en_vocab)))
-
+    self.transl_probs = self.find_probabilities()
 
     #Initialize counts and totals to be used in main loop. 
     self.counts = dict.fromkeys(self.sp_vocab, dict.fromkeys(self.en_vocab, 0))
@@ -77,8 +70,8 @@ class M1:
     self.total_s = dict.fromkeys(self.en_vocab, 0)
 
 
-  def find_probabilities():
-    pass
+  def find_probabilities(self):
+    return dict.fromkeys(self.sp_vocab, dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab)))
 
 
   #takes in an array of sentences of sp and en words
@@ -87,10 +80,10 @@ class M1:
     tuples = []
     for en_sentence in en_doc:
       for en_word in en_sentence.split(' '):
-        self.en_vocab += en_word
+        self.en_vocab.append(en_word)
     for sp_sentence in sp_doc:
       for sp_word in sp_sentence.split(' '):
-        self.sp_vocab += sp_word
+        self.sp_vocab.append(sp_word)
       
     for i, sp_sentence in enumerate(sp_doc):
       tuples.append((sp_doc[i], en_doc[i]))

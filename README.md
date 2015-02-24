@@ -15,7 +15,15 @@ sentences.
 
 Further information on p. 880 of the textbook.
 
-## Psuedocode
+
+## To Do
+
+- [ ] logs
+
+- [ ] just reset at each iteration or completely recreate? (applies to multiple data structures)
+
+
+## Pseudocode
 
 ```
 initialize transl_prob(e|f) uniformly
