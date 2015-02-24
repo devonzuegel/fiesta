@@ -29,19 +29,19 @@ Further information on p. 880 of the textbook.
 initialize transl_prob(e|f) uniformly
 do until convergence
   set count(e|f) to 0 for all e,f
-  set total_f(f) to 0 for all f
-  for all sentence pairs (e_s,f_s)
+  set total_s(f) to 0 for all f
+  for all sentence pairs (en_sentence, sp_sentence)
     set total_e(e) = 0 for all e
-    for all words e in e_s
-      for all words f in f_s
+    for all words e in en_sentence
+      for all words f in sp_sentence
         total_e(e) += transl_prob(e|f)
-    for all words e in e_s
-      for all words f in f_s
+    for all words e in en_sentence
+      for all words f in sp_sentence
         count(e|f) += transl_prob(e|f) / total_e(e)
-        total_f(f)   += transl_prob(e|f) / total_e(e)
+        total_s(f)   += transl_prob(e|f) / total_e(e)
   for all f
     for all e
-      transl_prob(e|f) = count(e|f) / total_f(f)
+      transl_prob(e|f) = count(e|f) / total_s(f)
 ```
 
 
@@ -67,6 +67,7 @@ Further information on p. 876 of the textbook.
 - "The bottle floated out." vs. "La botella salio flotando."
 - "I am hungry." vs. "Tengo hambre."
 - "I'm cold." vs. "Me hace frio
+- removed spanish accented characters
 
 
 ## Our strategy to improve the baseline IBM Model 1 system
