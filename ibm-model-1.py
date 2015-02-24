@@ -1,9 +1,13 @@
+# -*- coding: utf-8 -*-
+
 import sys
 import getopt
 import os
 import math
 import collections
 import re
+import codecs
+import unicodedata
 
 PATH_TO_DEV = './es-en/dev/'
 
@@ -120,9 +124,11 @@ def get_lines_of_file(fileName):
   lines = []
   with open(fileName,'r') as f: 
     for line in f:
-      clean_line = ' '.join(re.sub(r'[^\w ]', '', line.lower()).split())
-      lines.append(clean_line)
-      print clean_line
+      line = repr(line).replace('\\xc3\\xb3', 'o').replace('\'', '').replace('\\n', '')
+      print line
+      normalized = re.sub(r'[^\w ]', '', line, flags=re.UNICODE).lower()
+      lines.append(normalized)
+      return
   return lines
 
 
