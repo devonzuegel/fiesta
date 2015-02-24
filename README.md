@@ -1,6 +1,6 @@
 # Fiesta: README
 
-Zoe Roberts, [Devon Zuegel](mailto:devonz@cs.stanford.edu), and John Luttig
+[Zoe Robert](mailto:zrobert7@stanford.edu), [Devon Zuegel](mailto:devonz@cs.stanford.edu), and [John Luttig](mailto:jluttig@stanford.edu)
 
 ## IBM Model 1
 - A **statistical alignment** algorithm
