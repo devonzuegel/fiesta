@@ -76,24 +76,24 @@ class M1:
     self.en_vocab = set()
     self.sp_vocab = set()
 
-    #sp_doc = get_lines_of_file('%snewstest2012.es' % (PATH_TO_DEV))
-    sp_doc = ["Yo tengo un perro", "Yo tengo"]
-    #en_doc = get_lines_of_file('%snewstest2012.en' % (PATH_TO_DEV))
-    en_doc = ["I have a dog", "I have"]
+    sp_doc = get_lines_of_file('%snewstest2012.es' % (PATH_TO_DEV))
+    # sp_doc = ["Yo tengo un perro", "Yo tengo"]
+    en_doc = get_lines_of_file('%snewstest2012.en' % (PATH_TO_DEV))
+    # en_doc = ["I have a dog", "I have"]
 
     sentence_pairs = self.get_sentence_pairs(sp_doc, en_doc)
 
-    # ##
-    # # Initialize transl_probs uniformly (hash from spanish words to hash from english words
-    # # to probability of that english word beign the correct translation. Every translation
-    # # probability is initialized to 1/#english words since every word is equally likely to 
-    # # be the correct translation.)
+    ##
+    # Initialize transl_probs uniformly (hash from spanish words to hash from english words
+    # to probability of that english word beign the correct translation. Every translation
+    # probability is initialized to 1/#english words since every word is equally likely to 
+    # be the correct translation.)
     self.transl_probs = self.find_probabilities()
 
     #Initialize counts and totals to be used in main loop. 
    
-    #MASSIVE LOOPDELOOP
-    #create the counts hash
+    # MASSIVE LOOPDELOOP
+    # create the counts hash
     temp = dict.fromkeys(self.en_vocab, 0)
     self.counts = {}
     for key in self.sp_vocab:
@@ -116,7 +116,6 @@ class M1:
     for spanish_word in self.sp_vocab:
       for english_word in self.en_vocab:
         self.transl_probs[spanish_word][english_word] = (self.counts[spanish_word][english_word] / self.total_s[spanish_word])
-        print spanish_word + ":" + english_word + ":" + str(self.transl_probs[spanish_word][english_word])
 
     #PRint out highest probability pairs: NOT PART OF ALGORITHM
     for spanish_word in self.transl_probs.keys():
