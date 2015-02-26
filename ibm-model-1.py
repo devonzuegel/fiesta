@@ -99,7 +99,7 @@ class m1:
     self.transl_probs = self.init_transl_probs()
 
     # Initialize counts and totals to be used in main loop. 
-    self.create_counts_table()
+    self.init_counts_table()
     
 
     print '------------ CALCULATING TRALSATION PROBABILITIES .... ------------'
@@ -120,7 +120,15 @@ class m1:
     self.highest_prob_pairs()
 
 
-  def create_counts_table(self):
+  def init_transl_probs(self):
+    temp = dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab))
+    temp_dict = {}
+    for key in self.sp_vocab:
+      temp_dict[key] = copy.deepcopy(temp)
+    return temp_dict
+
+
+  def init_counts_table(self):
     self.counts = {}
     temp = dict.fromkeys(self.en_vocab, 0)
     for key in self.sp_vocab:
@@ -159,15 +167,6 @@ class m1:
           max_prob_engligh_word = english_word
       print spanish_word + ":" + max_prob_engligh_word + "  " + str(max_prob)
 
-
-  def init_transl_probs(self):
-    temp = dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab))
-    temp_dict = {}
-    for key in self.sp_vocab:
-      temp_dict[key] = copy.deepcopy(temp)
-
-    return temp_dict
-
   #takes in an array of sentences of sp and en words
   #returns tuples in the form of (sp sentence, en sentence)
   def get_sentence_pairs(self, sp_doc, en_doc):
@@ -192,16 +191,16 @@ def get_lines_of_file(filename):
   with open(filename,'r') as f: 
     for line in f:
       ##
-      # first we lowercase the line in order to treat capitalized
+      # First we lowercase the line in order to treat capitalized
       # and non-capitalized instances of a single word the same.
       ##
-      # then, repr() forces the output into a string literal utf-8
+      # Then, repr() forces the output into a string literal utf-8
       # format, with characters such as '\xc3\x8d' representing
       # special characters not found in typical ascii.
       line = repr(line.lower())
       
       ##
-      # replace all instances of utf-8 character codes with
+      # Replace all instances of utf-8 character codes with
       # uppercase letters of the nearest ascii equivalent. for
       # instance, 'á' becomes '\\xc3\\xa1' becomes 'a'. the
       # purpose of making these special characters uppercase is
@@ -210,17 +209,16 @@ def get_lines_of_file(filename):
       for utf8_code, replacement_char in utf_special_chars.items():
         line = line.replace(utf8_code, replacement_char)
       
-      # remove any non-whitespace, non-alphabetic characters.
+      # Remove any non-whitespace, non-alphabetic characters.
       line = re.sub(r'[^a-z ]', '', line)
       
-      # substitute multiple whitespace with single whitespace, then
+      # Substitute multiple whitespace with single whitespace, then
       # append the cleaned line to the list.
       lines.append(' '.join(line.split()))
   return lines
 
 
-if __name__ == "__main__":
-
+def offer_to_delete_cache():
   DELETE_CACHE = False
 
   if os.path.exists(CACHE_FILENAME):
@@ -231,4 +229,7 @@ if __name__ == "__main__":
       print '------------ DELETING CACHE .... ------------'
       os.remove(CACHE_FILENAME)
 
+
+if __name__ == "__main__":
+  offer_to_delete_cache()
   m = m1()  
