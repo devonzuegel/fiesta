@@ -16,7 +16,7 @@ pp = pprint.PrettyPrinter(indent=3)
 # TODO: implement this so that when False, it doesn't fill the
 # cache file. Allow this to be a flag!!
 CACHE_FILENAME = 'transl_probs.pickle'
-USE_CACHE = True
+DELETE_CACHE = False
 
 path_to_dev = './es-en/dev/'
 utf_special_chars = {
@@ -95,39 +95,37 @@ class m1:
     # initialize transl_probs uniformly (hash from spanish words to hash from english words
     # to probability of that english word beign the correct translation. every translation
     # probability is initialized to 1/#english words since every word is equally likely to 
-    # be the correct translation.)
-    print '------------ CALCULATING TRALSATION PROBABILITIES .... ------------'
-    self.transl_probs = self.find_probabilities()
-    print '------------ DONE CALCULATING TRALSATION PROBABILITIES ------------'
+    # be the correct translation.)   
+    self.transl_probs = self.init_transl_probs()
 
-    #initialize counts and totals to be used in main loop. 
-   
-    # ======= IBM MODEL 1 algorithm (main part) ======= #
+    # Initialize counts and totals to be used in main loop. 
     self.create_counts_table()
     
 
+    print '------------ CALCULATING TRALSATION PROBABILITIES .... ------------'
     if os.path.exists(CACHE_FILENAME):
       print 'Cache file exists!'
-      # Load values from file 
-      with open(CACHE_FILENAME, "rb") as f:
-        self.transl_probs = pickle.load(f)
+      # Load values from file.
+      with open(CACHE_FILENAME, "rb") as f:     self.transl_probs = pickle.load(f) 
     else:
       print 'Cache does not yet exist. Finding translation probabilities now...'
-      # Execute algorithm to find translation probabilities
+      # Find translation probabilities.
       self.execute_algorithm(sentence_pairs)
-      # Save into file
-      with open(CACHE_FILENAME, 'wb') as f:
-        pickle.dump(self.transl_probs, f)
+      # Save into file.
+      with open(CACHE_FILENAME, 'wb') as f:     pickle.dump(self.transl_probs, f)     
+    
+    print '------------ DONE CALCULATING TRALSATION PROBABILITIES ------------'
 
-
-
+    # Print out highest probability translation for each word.
     self.highest_prob_pairs()
+
 
   def create_counts_table(self):
     self.counts = {}
     temp = dict.fromkeys(self.en_vocab, 0)
     for key in self.sp_vocab:
       self.counts[key] = copy.deepcopy(temp)
+
 
   def execute_algorithm(self, sentence_pairs, n_iterations=1):
     # TODO: making n_interations > 1 gets us probabilities greater than 1...! :(
@@ -149,8 +147,9 @@ class m1:
         for english_word in self.en_vocab:
           self.transl_probs[spanish_word][english_word] = (self.counts[spanish_word][english_word] / self.total_s[spanish_word])
 
+
+  # Print out highest probability pairs.
   def highest_prob_pairs(self):
-    #print out highest probability pairs: not part of algorithm
     for spanish_word in self.transl_probs.keys():
       max_prob_engligh_word = "poop"
       max_prob = 0
@@ -161,7 +160,7 @@ class m1:
       print spanish_word + ":" + max_prob_engligh_word + "  " + str(max_prob)
 
 
-  def find_probabilities(self):
+  def init_transl_probs(self):
     temp = dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab))
     temp_dict = {}
     for key in self.sp_vocab:
@@ -220,8 +219,16 @@ def get_lines_of_file(filename):
   return lines
 
 
-def main():
-  m = m1()  
-
 if __name__ == "__main__":
-  main()
+
+  DELETE_CACHE = False
+
+  if os.path.exists(CACHE_FILENAME):
+    r = raw_input('Delete the existing cache? (y/n): ').lower()
+    DELETE_CACHE = (r == 'y') or (r == 'yes')
+
+    if DELETE_CACHE:
+      print '------------ DELETING CACHE .... ------------'
+      os.remove(CACHE_FILENAME)
+
+  m = m1()  
