@@ -84,13 +84,13 @@ class m1:
     self.sp_vocab = set()
 
     print '\n=== Extracting lines from file...'
-    filename = 'test' #'europarl-v7.es-en'
+    # filename = 'test'
+    filename = 'europarl-v7.es-en'
     sp_doc = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, filename))
     # sp_doc = ["yo tengo un perro", "yo tengo", "perro es mio", "yo soy devon", "tengo perro"]
     en_doc = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, filename))
     # en_doc = ["i have a dog",      "i have",   "dog is mine",  "i am devon",   "have dog"]
     sentence_pairs = self.get_sentence_pairs(sp_doc, en_doc)
-    print sentence_pairs
 
     ##
     # Initialize transl_probs uniformly (hash from spanish words to hash from english words
