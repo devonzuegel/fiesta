@@ -8,18 +8,16 @@ import collections
 import copy
 import re
 import pickle
-import pprint
 
-pp = pprint.PrettyPrinter(indent=3)
-
-##
-# TODO: implement this so that when False, it doesn't fill the
-# cache file. Allow this to be a flag!!
-CACHE_FILENAME = 'transl_probs.pickle'
+EMPTY_TRANSL_PROBS_CACHE = 'empty_transl_probs.pickle'
+TRANSL_PROBS_CACHE = 'transl_probs.pickle'
 DELETE_CACHE = False
 
-path_to_dev = './es-en/dev/'
-utf_special_chars = {
+PATH_TO_TRAIN = './es-en/train/'
+PATH_TO_DEV   = './es-en/dev/'
+PATH_TO_TEST  = './es-en/test/'
+
+UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
   '\\xc2\\xbf' : '',
   '\\xc3\\x81' : 'a',
@@ -37,8 +35,9 @@ utf_special_chars = {
   '\\xc3\\xba' : 'u',
   '\\xc3\\xbc' : 'u',
   '\'' : '',
-  '\\n' : '',
-  '&quot;' : ''
+  '\'' : '',
+  '&quot;' : '',
+  '&apos;' : ''
 }
 
 ##
@@ -78,57 +77,66 @@ utf_special_chars = {
   #   }
   # }
 class m1:
-  # ibm model1 initialization
   def __init__(self):
-    #isolate pairings from documents 
+    # Isolate pairings from documents 
     self.en_vocab = set()
     self.sp_vocab = set()
 
-    # sp_doc = get_lines_of_file('%seuroparl-v7.es-en.es' % (path_to_dev))
+    print '=== Extracting lines from file...'
+    # sp_doc = get_lines_of_file('%seuroparl-v7.es-en.es' % (PATH_TO_TRAIN))
     sp_doc = ["yo tengo un perro", "yo tengo", "perro es mio", "yo soy devon", "tengo perro"]
-    # en_doc = get_lines_of_file('%seuroparl-v7.es-en.en' % (path_to_dev))
+    # en_doc = get_lines_of_file('%seuroparl-v7.es-en.en' % (PATH_TO_TRAIN))
     en_doc = ["i have a dog",      "i have",   "dog is mine",  "i am devon",   "have dog"]
-
     sentence_pairs = self.get_sentence_pairs(sp_doc, en_doc)
 
+
     ##
-    # initialize transl_probs uniformly (hash from spanish words to hash from english words
+    # Initialize transl_probs uniformly (hash from spanish words to hash from english words
     # to probability of that english word beign the correct translation. every translation
     # probability is initialized to 1/#english words since every word is equally likely to 
-    # be the correct translation.)   
-    self.transl_probs = self.init_transl_probs()
+    # be the correct translation).
+    print '=== Initializing transl_probs (should take a while)...'
+    self.init_transl_probs()
 
     # Initialize counts and totals to be used in main loop. 
+    print '=== Initializing counts_table...'
     self.init_counts_table()
     
 
-    print '------------ CALCULATING TRALSATION PROBABILITIES .... ------------'
-    if os.path.exists(CACHE_FILENAME):
-      print 'Cache file exists!'
+    if os.path.exists(TRANSL_PROBS_CACHE):
+      print '=== Loading TRANSL_PROBS_CACHE...'
       # Load values from file.
-      with open(CACHE_FILENAME, "rb") as f:     self.transl_probs = pickle.load(f) 
+      with open(TRANSL_PROBS_CACHE, "rb") as f:     self.transl_probs = pickle.load(f) 
     else:
-      print 'Cache does not yet exist. Finding translation probabilities now...'
+      print '=== Building TRANSL_PROBS_CACHE...'
       # Find translation probabilities.
       self.execute_algorithm(sentence_pairs)
       # Save into file.
-      with open(CACHE_FILENAME, 'wb') as f:     pickle.dump(self.transl_probs, f)     
+      with open(TRANSL_PROBS_CACHE, 'wb') as f:     pickle.dump(self.transl_probs, f)     
     
-    print '------------ DONE CALCULATING TRALSATION PROBABILITIES ------------'
-
     # Print out highest probability translation for each word.
+    print '=== Printing results...'
     self.highest_prob_pairs()
 
 
   def init_transl_probs(self):
-    temp = dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab))
-    temp_dict = {}
-    for key in self.sp_vocab:
-      temp_dict[key] = copy.deepcopy(temp)
-    return temp_dict
+    self.transl_probs = {}    
+    if os.path.exists(EMPTY_TRANSL_PROBS_CACHE):
+      print '=== Loading EMPTY_TRANSL_PROBS_CACHE...'
+      # Load values from file.
+      with open(EMPTY_TRANSL_PROBS_CACHE, "rb") as f:
+        self.transl_probs = pickle.load(f) 
+    else:
+      print '=== Building EMPTY_TRANSL_PROBS_CACHE now...'
+      num_english = len(self.en_vocab)
+      temp = dict.fromkeys(self.en_vocab, 1.0/num_english)
+      for key in self.sp_vocab:
+        self.transl_probs[key] = copy.deepcopy(temp)
+      with open(EMPTY_TRANSL_PROBS_CACHE, 'wb') as f:     pickle.dump(self.transl_probs, f)     
 
 
   def init_counts_table(self):
+    # TODO: build cache
     self.counts = {}
     temp = dict.fromkeys(self.en_vocab, 0)
     for key in self.sp_vocab:
@@ -139,33 +147,36 @@ class m1:
     # TODO: making n_interations > 1 gets us probabilities greater than 1...! :(
     for x in xrange(0, n_iterations):
       self.total_s = dict.fromkeys(self.sp_vocab, 0)
+      
       for pair in sentence_pairs:
         self.total_e = dict.fromkeys(self.en_vocab, 0)
         sp_sentence = pair[0]
         en_sentence = pair[1]
-        for english_word in en_sentence.split():
-          for spanish_word in sp_sentence.split():
-            self.total_e[english_word] += self.transl_probs[spanish_word][english_word]
-        for english_word in en_sentence.split():
-          for spanish_word in sp_sentence.split():
-            self.counts[spanish_word][english_word] += (self.transl_probs[spanish_word][english_word] *1.0/ self.total_e[english_word])
-            self.total_s[spanish_word] += (self.transl_probs[spanish_word][english_word] / self.total_e[english_word])
 
-      for spanish_word in self.sp_vocab:
-        for english_word in self.en_vocab:
-          self.transl_probs[spanish_word][english_word] = (self.counts[spanish_word][english_word] / self.total_s[spanish_word])
+        for en_w in en_sentence.split():    # Iterates through each English word
+          for sp_w in sp_sentence.split():  # Iterates through each Spanish word
+            self.total_e[en_w] += self.transl_probs[sp_w][en_w]
+
+        for en_w in en_sentence.split():    # Iterates through each English word
+          for sp_w in sp_sentence.split():  # Iterates through each Spanish word
+            self.counts[sp_w][en_w] += (self.transl_probs[sp_w][en_w] *1.0/ self.total_e[en_w])
+            self.total_s[sp_w] += (self.transl_probs[sp_w][en_w] / self.total_e[en_w])
+
+      for sp_w in self.sp_vocab:
+        for en_w in self.en_vocab:
+          self.transl_probs[sp_w][en_w] = (self.counts[sp_w][en_w] / self.total_s[sp_w])
 
 
   # Print out highest probability pairs.
   def highest_prob_pairs(self):
-    for spanish_word in self.transl_probs.keys():
+    for sp_w in self.transl_probs.keys():
       max_prob_engligh_word = "poop"
       max_prob = 0
-      for english_word in self.transl_probs[spanish_word].keys():
-        if self.transl_probs[spanish_word][english_word] > max_prob:
-          max_prob = self.transl_probs[spanish_word][english_word]
-          max_prob_engligh_word = english_word
-      print spanish_word + ":" + max_prob_engligh_word + "  " + str(max_prob)
+      for en_w in self.transl_probs[sp_w].keys():
+        if self.transl_probs[sp_w][en_w] > max_prob:
+          max_prob = self.transl_probs[sp_w][en_w]
+          max_prob_engligh_word = en_w
+      print sp_w + ":" + max_prob_engligh_word + "  " + str(max_prob)
 
   #takes in an array of sentences of sp and en words
   #returns tuples in the form of (sp sentence, en sentence)
@@ -206,7 +217,7 @@ def get_lines_of_file(filename):
       # purpose of making these special characters uppercase is
       # to differentiate them from the rest of the non-special
       # characters, which are all lowercase.
-      for utf8_code, replacement_char in utf_special_chars.items():
+      for utf8_code, replacement_char in UTF_SPECIAL_CHARS.items():
         line = line.replace(utf8_code, replacement_char)
       
       # Remove any non-whitespace, non-alphabetic characters.
@@ -219,15 +230,26 @@ def get_lines_of_file(filename):
 
 
 def offer_to_delete_cache():
-  DELETE_CACHE = False
 
-  if os.path.exists(CACHE_FILENAME):
-    r = raw_input('Delete the existing cache? (y/n): ').lower()
+  if os.path.exists(TRANSL_PROBS_CACHE):
+    r = raw_input('Delete the full cache? (y/n): ').lower()
+
+    # Defaults to False.
     DELETE_CACHE = (r == 'y') or (r == 'yes')
 
     if DELETE_CACHE:
-      print '------------ DELETING CACHE .... ------------'
-      os.remove(CACHE_FILENAME)
+      print 'Deleting full cache....'
+      os.remove(TRANSL_PROBS_CACHE)
+
+  if os.path.exists(EMPTY_TRANSL_PROBS_CACHE):
+    r = raw_input('Delete the uniform cache? (y/n): ').lower()
+
+    # Defaults to False.
+    DELETE_CACHE = (r == 'y') or (r == 'yes')
+
+    if DELETE_CACHE:
+      print 'Deleting uniform cache....'
+      os.remove(EMPTY_TRANSL_PROBS_CACHE)
 
 
 if __name__ == "__main__":
