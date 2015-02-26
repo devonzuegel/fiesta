@@ -143,7 +143,8 @@ class M1:
 
   def init_transl_probs(self):
     num_english_words = len(self.en_vocab_list)
-    temp = [1.0/num_english_words] * num_english_words
+    starting_prob = 1.0/num_english_words
+    temp = [starting_prob] * num_english_words
     for i in range(0, len(self.sp_vocab_list)):
       self.sp_vocab_list[i] = temp[0:]
 
