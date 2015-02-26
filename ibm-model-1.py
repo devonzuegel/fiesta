@@ -101,17 +101,33 @@ class M1:
       total_e = [0] * len(self.sp_vocab)
       sp_sentence = pair[0].split()
       en_sentence = pair[1].split()
+
       ##
       # Find index of each word in the sentence (both Spanish & English)
       # in the `self.e*_vocab` sorted list.
       sp_word_indices = get_word_indices(sp_sentence, self.sp_vocab)
       en_word_indices = get_word_indices(en_sentence, self.en_vocab)
 
-      for en_word in en_sentence:
-        for sp_word in sp_sentence:
-          en_i = binary_search(self.en_vocab, en_word)
-          total_e
+      for e in range(len(en_sentence)):    # Each index `e` in English sentence
+        for s in range(len(sp_sentence)):  # Each index `s` in Spanish sentence
+          sp_row = sp_word_indices[s]  # Spanish words » rows of all tables
+          en_col = en_word_indices[e]  # English words » cols of all tables
 
+          total_e[en_col] += transl_probs[sp_row][en_col]
+      
+      for e in range(len(en_sentence)):    # Each index `e` in English sentence
+        for s in range(len(sp_sentence)):  # Each index `s` in Spanish sentence
+          sp_row = sp_word_indices[s]  # Spanish words » rows of all tables
+          en_col = en_word_indices[e]  # English words » cols of all tables
+
+          counts[sp_row][en_col] += transl_probs[sp_row][en_col] / (1.0*total_e[en_col])
+          total_s[sp_row] += transl_probs[sp_row][en_col] / (1.0*total_e[en_col])
+
+    for sp_i in range(len(self.sp_vocab)):
+      for en_i in range(len(self.en_vocab)):
+        transl_probs[sp_i][en_i] = counts[sp_i][en_i] / (total_s[sp_i] * 1.0)
+
+    print_best_translations(transl_probs, self.sp_vocab, self.en_vocab)
 
   ################ algorithm ################
     #   self.total_s = dict.fromkeys(self.sp_vocab, 0)
@@ -121,7 +137,7 @@ class M1:
     #     en_sentence = pair[1]
     #     for english_word in en_sentence.split():
     #       for spanish_word in sp_sentence.split():
-    #         self.total_e[english_word] += self.transl_probs[spanish_word][english_word]
+    #?        self.total_e[english_word] += self.transl_probs[spanish_word][english_word]
     #     for english_word in en_sentence.split():
     #       for spanish_word in sp_sentence.split():
     #         self.counts[spanish_word][english_word] += (self.transl_probs[spanish_word][english_word] / (self.total_e[english_word]*1.0))
@@ -144,8 +160,6 @@ class M1:
     #         max_prob = self.transl_probs[spanish_word][english_word]
     #         max_prob_engligh_word = english_word
     #     print spanish_word + ":" + max_prob_engligh_word + "   " + str(max_prob)
-
-
 
   ##
     # Initialize transl_probs uniformly. It's table from spanish words to
@@ -246,6 +260,14 @@ class M1:
 
     # Return list of sentence pair tuples.
     return tuples
+
+def print_best_translations(transl_probs, sp_vocab, en_vocab):
+  for sp_row in range(len(transl_probs)):
+    row = transl_probs[sp_row]
+    max_prob = max(row)
+    i_of_max = row.index(max_prob)
+    print '%s : %s    %f' % (sp_vocab[sp_row], en_vocab[i_of_max], max_prob)
+    
 
 def get_word_indices(sentence, vocab):
   n_words = len(sentence)
