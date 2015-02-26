@@ -8,9 +8,10 @@ import collections
 import copy
 import re
 import pprint
+from datetime import datetime
 
 pp = pprint.PrettyPrinter(indent=3)
-PATH_TO_DEV = './es-en/dev/'
+PATH_TO_TRAIN = './es-en/train/'
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
   '\\xc2\\xbf' : '',
@@ -76,10 +77,10 @@ class M1:
     self.en_vocab = set()
     self.sp_vocab = set()
 
-    #sp_doc = get_lines_of_file('%snewstest2012.es' % (PATH_TO_DEV))
-    sp_doc = ["Yo tengo un perro", "Yo tengo"]
-    #en_doc = get_lines_of_file('%snewstest2012.en' % (PATH_TO_DEV))
-    en_doc = ["I have a dog", "I have"]
+    sp_doc = get_lines_of_file('%seuroparl-v7.es-en.es' % (PATH_TO_TRAIN))
+    # sp_doc = ["Yo tengo un perro", "Yo tengo"]
+    en_doc = get_lines_of_file('%seuroparl-v7.es-en.en' % (PATH_TO_TRAIN))
+    # en_doc = ["I have a dog", "I have"]
 
     sentence_pairs = self.get_sentence_pairs(sp_doc, en_doc)
 
@@ -90,6 +91,7 @@ class M1:
     # # be the correct translation.)
     self.transl_probs = self.find_probabilities()
 
+    print 'completed transl_probs'
     #Initialize counts and totals to be used in main loop. 
    
     #MASSIVE LOOPDELOOP
@@ -194,6 +196,8 @@ def main():
   
 
 if __name__ == "__main__":
+  startTime = datetime.now()
   main()
+  print datetime.now() - startTime
 
   
