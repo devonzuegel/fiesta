@@ -1,3 +1,8 @@
+yo tengo un perro
+yo tengo
+perro es mío
+yo soy devon
+tengo perro
 Lamentablemente , queda mucho camino por recorrer .
 Así que ¡ c &apos; est la vie !
 Esto se hacía en el mismo lugar y al mismo tiempo .
