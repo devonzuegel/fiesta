@@ -11,7 +11,8 @@ from datetime import datetime
 
 PATH_TO_TRAIN = './es-en/train/'
 PATH_TO_DEV = './es-en/dev/'
-FILENAME = 'europarl-v7.es-en'
+# FILENAME = 'europarl-v7.es-en'
+FILENAME = 'test2'
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
   '\\xc2\\xbf' : '',
@@ -73,21 +74,21 @@ UTF_SPECIAL_CHARS = {
 class M1:
   # IBM Model1 initialization
   def __init__(self):
+    print '\n=== Extracting lines from documents...'
     sp_doc = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
     en_doc = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
     sentence_pairs = self.deconstuct_sentences(sp_doc, en_doc)
 
-    self.init_transl_probs()
-    self.init_counts()
+    # Initialize counts and totals to be used in main loop. 
+    print '\n=== Initializing transl_probs & counts...'
+    transl_probs = self.init_transl_probs()
+    counts       = self.init_counts()
+    total_s      = [0] * len(self.sp_vocab_list)
+  
+    # for pair in sentence_pairs:
 
-    # print 'initialized self.transl_probs'
-    # #Initialize counts and totals to be used in main loop. 
-   
-    # # MASSIVE LOOPDELOOP
 
-    # print 'initialized self.counts'
-
-    # algoriesm
+    # algorithm
       # self.total_s = dict.fromkeys(self.sp_vocab, 0)
       # for pair in sentence_pairs:
       #   self.total_e = dict.fromkeys(self.en_vocab, 0)
@@ -131,7 +132,7 @@ class M1:
     ##
     # Initialize the "rows" (corresponding to a Spanish word) for the
     # `transl_probs` table.
-    self.transl_probs = [None] * len(self.sp_vocab_list)
+    transl_probs = [None] * len(self.sp_vocab_list)
 
     # Get the size of the english vocab.
     num_english_words = len(self.en_vocab_list)
@@ -148,15 +149,18 @@ class M1:
     # For each row (corresponding to a Spanish word), make a DEEP COPY
     # of that row so that they can be updated as individuals (as
     # opposed to all pointing to the same list).
-    for i in range(0, len(self.transl_probs)):
-      self.transl_probs[i] = row[0:]
+    for i in range(0, len(transl_probs)):
+      transl_probs[i] = row[0:]
+
+    return transl_probs
+
 
   # Create the counts table.
   def init_counts(self):
     ##
     # Initialize the "rows" (corresponding to a Spanish word) for the
     # `counts` table.
-    self.counts = [None] * len(self.sp_vocab_list)
+    counts = [None] * len(self.sp_vocab_list)
 
     # Get the size of the english vocab.
     num_english_words = len(self.en_vocab_list)
@@ -171,9 +175,10 @@ class M1:
     # For each row (corresponding to a Spanish word), make a DEEP COPY
     # of that row so that they can be updated as individuals (as
     # opposed to all pointing to the same list).
-    for i in range(0, len(self.counts)):
-      self.counts[i] = row[0:]
+    for i in range(0, len(counts)):
+      counts[i] = row[0:]
 
+    return counts
 
   ##
   # Takes in an array of sentences of sp and en words
