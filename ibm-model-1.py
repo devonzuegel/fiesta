@@ -8,6 +8,8 @@ import collections
 import copy
 import re
 from datetime import datetime
+from bisect import bisect_left
+
 
 PATH_TO_TRAIN = './es-en/train/'
 PATH_TO_DEV = './es-en/dev/'
@@ -34,6 +36,12 @@ UTF_SPECIAL_CHARS = {
   '\\n' : '',
   '&quot;' : ''
 }
+
+
+def binary_search(to_search, val, lo=0, hi=None):   # can't use a to specify default for hi
+    hi = hi or len(to_search)              # hi defaults to len(a)   
+    pos = bisect_left(to_search, val, lo, hi)   # find insertion position
+    return pos if pos != hi and to_search[pos] == val else -1 # don't walk off the end
 
 ##
   # initialize transl_prob(e|f) uniformly
@@ -72,53 +80,70 @@ UTF_SPECIAL_CHARS = {
   #   }
   # }
 class M1:
-  # IBM Model1 initialization
+
+  # IBM Model 1 initialization
   def __init__(self):
+
     print '\n=== Extracting lines from documents...'
     sp_doc = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
     en_doc = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
     sentence_pairs = self.deconstuct_sentences(sp_doc, en_doc)
 
+
     # Initialize counts and totals to be used in main loop. 
     print '\n=== Initializing transl_probs & counts...'
     transl_probs = self.init_transl_probs()
     counts       = self.init_counts()
-    total_s      = [0] * len(self.sp_vocab_list)
+    total_s      = [0] * len(self.sp_vocab)
   
-    # for pair in sentence_pairs:
+
+    for pair in sentence_pairs:
+      total_e = [0] * len(self.sp_vocab)
+      sp_sentence = pair[0]
+      en_sentence = pair[1]
+
+      # Find index of each word in the sentence (both Spanish & English)
+      # in the `self.e*_vocab` sorted list.
+      sp_word_indices = get_word_indices(sp_sentence, self.sp_vocab)
+      en_word_indices = get_word_indices(en_sentence, self.en_vocab)
+
+    #   for en_word in en_sentence.split():
+    #     for sp_word in sp_sentence.split():
+    #       en_i = binary_search(self.en_vocab, en_word)
+    #       total_e
 
 
-    # algorithm
-      # self.total_s = dict.fromkeys(self.sp_vocab, 0)
-      # for pair in sentence_pairs:
-      #   self.total_e = dict.fromkeys(self.en_vocab, 0)
-      #   sp_sentence = pair[0]
-      #   en_sentence = pair[1]
-      #   for english_word in en_sentence.split():
-      #     for spanish_word in sp_sentence.split():
-      #       self.total_e[english_word] += self.transl_probs[spanish_word][english_word]
-      #   for english_word in en_sentence.split():
-      #     for spanish_word in sp_sentence.split():
-      #       self.counts[spanish_word][english_word] += (self.transl_probs[spanish_word][english_word] / (self.total_e[english_word]*1.0))
-      #       self.total_s[spanish_word] += (self.transl_probs[spanish_word][english_word] / (self.total_e[english_word]*1.0))
+  ################ algorithm ################
+    #   self.total_s = dict.fromkeys(self.sp_vocab, 0)
+    #   for pair in sentence_pairs:
+    #     self.total_e = dict.fromkeys(self.en_vocab, 0)
+    #     sp_sentence = pair[0]
+    #     en_sentence = pair[1]
+    #     for english_word in en_sentence.split():
+    #       for spanish_word in sp_sentence.split():
+    #         self.total_e[english_word] += self.transl_probs[spanish_word][english_word]
+    #     for english_word in en_sentence.split():
+    #       for spanish_word in sp_sentence.split():
+    #         self.counts[spanish_word][english_word] += (self.transl_probs[spanish_word][english_word] / (self.total_e[english_word]*1.0))
+    #         self.total_s[spanish_word] += (self.transl_probs[spanish_word][english_word] / (self.total_e[english_word]*1.0))
 
-      # for spanish_word in self.sp_vocab:
-      #   for english_word in self.en_vocab:
-      #     if self.total_s[spanish_word] == 0:
-      #       self.transl_probs[spanish_word][english_word] = 0
-      #     else:
-      #       self.transl_probs[spanish_word][english_word] = (self.counts[spanish_word][english_word] / (self.total_s[spanish_word]*1.0))
-      #     # print spanish_word + ":" + english_word + ":" + str(self.transl_probs[spanish_word][english_word])
+    #   for spanish_word in self.sp_vocab:
+    #     for english_word in self.en_vocab:
+    #       if self.total_s[spanish_word] == 0:
+    #         self.transl_probs[spanish_word][english_word] = 0
+    #       else:
+    #         self.transl_probs[spanish_word][english_word] = (self.counts[spanish_word][english_word] / (self.total_s[spanish_word]*1.0))
+    #       # print spanish_word + ":" + english_word + ":" + str(self.transl_probs[spanish_word][english_word])
 
-      # # Print out highest probability pairs: NOT PART OF ALGORITHM
-      # for spanish_word in self.transl_probs.keys():
-      #   max_prob_engligh_word = "poop"
-      #   max_prob = 0
-      #   for english_word in self.transl_probs[spanish_word].keys():
-      #     if self.transl_probs[spanish_word][english_word] > max_prob:
-      #       max_prob = self.transl_probs[spanish_word][english_word]
-      #       max_prob_engligh_word = english_word
-      #   print spanish_word + ":" + max_prob_engligh_word + "   " + str(max_prob)
+    #   # Print out highest probability pairs: NOT PART OF ALGORITHM
+    #   for spanish_word in self.transl_probs.keys():
+    #     max_prob_engligh_word = "poop"
+    #     max_prob = 0
+    #     for english_word in self.transl_probs[spanish_word].keys():
+    #       if self.transl_probs[spanish_word][english_word] > max_prob:
+    #         max_prob = self.transl_probs[spanish_word][english_word]
+    #         max_prob_engligh_word = english_word
+    #     print spanish_word + ":" + max_prob_engligh_word + "   " + str(max_prob)
 
 
 
@@ -132,10 +157,10 @@ class M1:
     ##
     # Initialize the "rows" (corresponding to a Spanish word) for the
     # `transl_probs` table.
-    transl_probs = [None] * len(self.sp_vocab_list)
+    transl_probs = [None] * len(self.sp_vocab)
 
     # Get the size of the english vocab.
-    num_english_words = len(self.en_vocab_list)
+    num_english_words = len(self.en_vocab)
     # Compute a starting prob, initially uniform to all entries.
     starting_prob = 1.0/num_english_words
 
@@ -160,10 +185,10 @@ class M1:
     ##
     # Initialize the "rows" (corresponding to a Spanish word) for the
     # `counts` table.
-    counts = [None] * len(self.sp_vocab_list)
+    counts = [None] * len(self.sp_vocab)
 
     # Get the size of the english vocab.
-    num_english_words = len(self.en_vocab_list)
+    num_english_words = len(self.en_vocab)
 
     ##
     # Initalize a single row. Each column should begin with the same
@@ -200,17 +225,18 @@ class M1:
         sp_vocab.add(sp_word)
         
     # Build sorted vocab list.
-    self.en_vocab_list = list(sorted(en_vocab))
-    self.sp_vocab_list = list(sorted(sp_vocab))
+    self.en_vocab = list(sorted(en_vocab))
+    self.sp_vocab = list(sorted(sp_vocab))
 
     ##
     # Build dict for each vocabulary in which keys are words and their
-    # values are their respective indices.
-    for i in range(0, len(self.en_vocab_list)):
-      word = self.en_vocab_list[i]
+    # values are their respective indices. This will allow lookup of
+    # words from row/column in the `transl_probs` & `counts` tables.
+    for i in range(0, len(self.en_vocab)):
+      word = self.en_vocab[i]
       self.en_vocab_indices[word] = i
-    for i in range(0, len(self.sp_vocab_list)):
-      word = self.sp_vocab_list[i]
+    for i in range(0, len(self.sp_vocab)):
+      word = self.sp_vocab[i]
       self.sp_vocab_indices[word] = i
   
     # Build list of sentence pair tuples.
@@ -220,6 +246,13 @@ class M1:
 
     # Return list of sentence pair tuples.
     return tuples
+
+def get_word_indices(sentence, vocab):
+  n_words = len(sentence.split())
+  word_indices = [0]*n_words
+  for i, word in enumerate(sentence.split()):
+    word_indices[i] = binary_search(vocab, word)
+  return word_indices
 
 
 ##
