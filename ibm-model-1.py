@@ -84,10 +84,10 @@ class m1:
     self.en_vocab = set()
     self.sp_vocab = set()
 
-    sp_doc = get_lines_of_file('%snewstest2012.es' % (path_to_dev))
-    # sp_doc = ["yo tengo un perro", "yo tengo"]
-    en_doc = get_lines_of_file('%snewstest2012.en' % (path_to_dev))
-    # en_doc = ["i have a dog", "i have"]
+    # sp_doc = get_lines_of_file('%seuroparl-v7.es-en.es' % (path_to_dev))
+    sp_doc = ["yo tengo un perro", "yo tengo", "perro es mio", "yo soy devon", "tengo perro"]
+    # en_doc = get_lines_of_file('%seuroparl-v7.es-en.en' % (path_to_dev))
+    en_doc = ["i have a dog",      "i have",   "dog is mine",  "i am devon",   "have dog"]
 
     sentence_pairs = self.get_sentence_pairs(sp_doc, en_doc)
 
@@ -102,31 +102,54 @@ class m1:
 
     #initialize counts and totals to be used in main loop. 
    
-    # massive loopdeloop
-    # create the counts hash
-    temp = dict.fromkeys(self.en_vocab, 0)
+    # ======= IBM MODEL 1 algorithm (main part) ======= #
+    self.create_counts_table()
+    
+
+    if os.path.exists(CACHE_FILENAME):
+      print 'Cache file exists!'
+      # Load values from file 
+      with open(CACHE_FILENAME, "rb") as f:
+        self.transl_probs = pickle.load(f)
+    else:
+      print 'Cache does not yet exist. Finding translation probabilities now...'
+      # Execute algorithm to find translation probabilities
+      self.execute_algorithm(sentence_pairs)
+      # Save into file
+      with open(CACHE_FILENAME, 'wb') as f:
+        pickle.dump(self.transl_probs, f)
+
+
+
+    self.highest_prob_pairs()
+
+  def create_counts_table(self):
     self.counts = {}
+    temp = dict.fromkeys(self.en_vocab, 0)
     for key in self.sp_vocab:
       self.counts[key] = copy.deepcopy(temp)
-    #self.counts = dict.fromkeys(copy.deepcopy(self.sp_vocab), copy.deepcopy(temp))
-    
-    self.total_s = dict.fromkeys(self.sp_vocab, 0)
-    for pair in sentence_pairs:
-      self.total_e = dict.fromkeys(self.en_vocab, 0)
-      sp_sentence = pair[0]
-      en_sentence = pair[1]
-      for english_word in en_sentence.split():
-        for spanish_word in sp_sentence.split():
-          self.total_e[english_word] += self.transl_probs[spanish_word][english_word]
-      for english_word in en_sentence.split():
-        for spanish_word in sp_sentence.split():
-          self.counts[spanish_word][english_word] += (self.transl_probs[spanish_word][english_word] *1.0/ self.total_e[english_word])
-          self.total_s[spanish_word] += (self.transl_probs[spanish_word][english_word] / self.total_e[english_word])
 
-    for spanish_word in self.sp_vocab:
-      for english_word in self.en_vocab:
-        self.transl_probs[spanish_word][english_word] = (self.counts[spanish_word][english_word] / self.total_s[spanish_word])
+  def execute_algorithm(self, sentence_pairs, n_iterations=1):
+    # TODO: making n_interations > 1 gets us probabilities greater than 1...! :(
+    for x in xrange(0, n_iterations):
+      self.total_s = dict.fromkeys(self.sp_vocab, 0)
+      for pair in sentence_pairs:
+        self.total_e = dict.fromkeys(self.en_vocab, 0)
+        sp_sentence = pair[0]
+        en_sentence = pair[1]
+        for english_word in en_sentence.split():
+          for spanish_word in sp_sentence.split():
+            self.total_e[english_word] += self.transl_probs[spanish_word][english_word]
+        for english_word in en_sentence.split():
+          for spanish_word in sp_sentence.split():
+            self.counts[spanish_word][english_word] += (self.transl_probs[spanish_word][english_word] *1.0/ self.total_e[english_word])
+            self.total_s[spanish_word] += (self.transl_probs[spanish_word][english_word] / self.total_e[english_word])
 
+      for spanish_word in self.sp_vocab:
+        for english_word in self.en_vocab:
+          self.transl_probs[spanish_word][english_word] = (self.counts[spanish_word][english_word] / self.total_s[spanish_word])
+
+  def highest_prob_pairs(self):
     #print out highest probability pairs: not part of algorithm
     for spanish_word in self.transl_probs.keys():
       max_prob_engligh_word = "poop"
@@ -135,27 +158,16 @@ class m1:
         if self.transl_probs[spanish_word][english_word] > max_prob:
           max_prob = self.transl_probs[spanish_word][english_word]
           max_prob_engligh_word = english_word
-      print spanish_word + ":" + max_prob_engligh_word + ":" + str(max_prob)
+      print spanish_word + ":" + max_prob_engligh_word + "  " + str(max_prob)
 
 
   def find_probabilities(self):
-    if os.path.exists(CACHE_FILENAME):
-      print 'Cache file exists!'
-      with open(CACHE_FILENAME, "rb") as f:
-        return pickle.load(f)
-    else:
-      print 'Cache file does not yet exist. Building now...'
+    temp = dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab))
+    temp_dict = {}
+    for key in self.sp_vocab:
+      temp_dict[key] = copy.deepcopy(temp)
 
-      temp = dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab))
-      temp_dict = {}
-      for key in self.sp_vocab:
-        temp_dict[key] = copy.deepcopy(temp)
-      
-      # Save into file
-      with open(CACHE_FILENAME, 'wb') as f:
-        pickle.dump(temp_dict, f)
-
-      return temp_dict
+    return temp_dict
 
   #takes in an array of sentences of sp and en words
   #returns tuples in the form of (sp sentence, en sentence)
