@@ -9,9 +9,9 @@ import copy
 import re
 import pickle
 
-UNIFORM_COUNTS_CACHE = 'uniform_counts.pickle'
+UNIFORM_COUNTS_CACHE       = 'uniform_counts.pickle'
 UNIFORM_TRANSL_PROBS_CACHE = 'uniform_transl_probs.pickle'
-TRANSL_PROBS_CACHE = 'transl_probs.pickle'
+TRANSL_PROBS_CACHE         = 'transl_probs.pickle'
 DELETE_CACHE = False
 
 PATH_TO_TRAIN = './es-en/train/'
@@ -84,12 +84,13 @@ class m1:
     self.sp_vocab = set()
 
     print '\n=== Extracting lines from file...'
-    # sp_doc = get_lines_of_file('%seuroparl-v7.es-en.es' % (PATH_TO_TRAIN))
-    sp_doc = ["yo tengo un perro", "yo tengo", "perro es mio", "yo soy devon", "tengo perro"]
-    # en_doc = get_lines_of_file('%seuroparl-v7.es-en.en' % (PATH_TO_TRAIN))
-    en_doc = ["i have a dog",      "i have",   "dog is mine",  "i am devon",   "have dog"]
+    filename = 'test' #'europarl-v7.es-en'
+    sp_doc = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, filename))
+    # sp_doc = ["yo tengo un perro", "yo tengo", "perro es mio", "yo soy devon", "tengo perro"]
+    en_doc = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, filename))
+    # en_doc = ["i have a dog",      "i have",   "dog is mine",  "i am devon",   "have dog"]
     sentence_pairs = self.get_sentence_pairs(sp_doc, en_doc)
-
+    print sentence_pairs
 
     ##
     # Initialize transl_probs uniformly (hash from spanish words to hash from english words
@@ -213,7 +214,7 @@ def get_lines_of_file(filename):
       # Then, repr() forces the output into a string literal utf-8
       # format, with characters such as '\xc3\x8d' representing
       # special characters not found in typical ascii.
-      line = repr(line.lower())
+      line = repr(line.lower()).replace('\\n', '')
       
       ##
       # Replace all instances of utf-8 character codes with
@@ -227,7 +228,7 @@ def get_lines_of_file(filename):
       
       # Remove any non-whitespace, non-alphabetic characters.
       line = re.sub(r'[^a-z ]', '', line)
-      
+
       # Substitute multiple whitespace with single whitespace, then
       # append the cleaned line to the list.
       lines.append(' '.join(line.split()))
