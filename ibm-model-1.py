@@ -77,25 +77,13 @@ class M1:
     en_doc = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
     sentence_pairs = self.deconstuct_sentences(sp_doc, en_doc)
 
-    ##
-    # Initialize transl_probs uniformly. It's table from spanish words to
-    # english words (list of lists) to probability of that english word being
-    # the correct translation. Every translation probability is
-    # initialized to (1/# english words) since every word is equally
-    # likely to be the correct translation.
     self.init_transl_probs()
-
-    # self.transl_probs = self.find_probabilities()
+    self.init_counts()
 
     # print 'initialized self.transl_probs'
     # #Initialize counts and totals to be used in main loop. 
    
     # # MASSIVE LOOPDELOOP
-    # # create the counts hash
-    # temp = dict.fromkeys(self.en_vocab, 0)
-    # self.counts = {}
-    # for key in self.sp_vocab:
-    #   self.counts[key] = copy.deepcopy(temp)
 
     # print 'initialized self.counts'
 
@@ -132,12 +120,60 @@ class M1:
       #   print spanish_word + ":" + max_prob_engligh_word + "   " + str(max_prob)
 
 
+
+  ##
+    # Initialize transl_probs uniformly. It's table from spanish words to
+    # english words (list of lists) to probability of that english word being
+    # the correct translation. Every translation probability is
+    # initialized to (1/# english words) since every word is equally
+    # likely to be the correct translation.
   def init_transl_probs(self):
+    ##
+    # Initialize the "rows" (corresponding to a Spanish word) for the
+    # `transl_probs` table.
+    self.transl_probs = [None] * len(self.sp_vocab_list)
+
+    # Get the size of the english vocab.
     num_english_words = len(self.en_vocab_list)
+    # Compute a starting prob, initially uniform to all entries.
     starting_prob = 1.0/num_english_words
-    temp = [starting_prob] * num_english_words
-    for i in range(0, len(self.sp_vocab_list)):
-      self.sp_vocab_list[i] = temp[0:]
+
+    ##
+    # Initalize a single row. Each column should begin with the same
+    # starting probability, which will later be updated through the
+    # algorithm.
+    row = [starting_prob] * num_english_words
+
+    ##
+    # For each row (corresponding to a Spanish word), make a DEEP COPY
+    # of that row so that they can be updated as individuals (as
+    # opposed to all pointing to the same list).
+    for i in range(0, len(self.transl_probs)):
+      self.transl_probs[i] = row[0:]
+
+  # Create the counts table.
+  def init_counts(self):
+    ##
+    # Initialize the "rows" (corresponding to a Spanish word) for the
+    # `counts` table.
+    self.counts = [None] * len(self.sp_vocab_list)
+
+    # Get the size of the english vocab.
+    num_english_words = len(self.en_vocab_list)
+
+    ##
+    # Initalize a single row. Each column should begin with the same
+    # starting probability, which will later be updated through the
+    # algorithm.
+    row = [0] * num_english_words
+
+    ##
+    # For each row (corresponding to a Spanish word), make a DEEP COPY
+    # of that row so that they can be updated as individuals (as
+    # opposed to all pointing to the same list).
+    for i in range(0, len(self.counts)):
+      self.counts[i] = row[0:]
+
 
   ##
   # Takes in an array of sentences of sp and en words
