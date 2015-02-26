@@ -25,8 +25,8 @@ def bicount(sent):
 	return res
 
 def bleu_for_one(ref, evl):
-	ref = ref.split()
-	evl = evl.split()
+	ref = ref.lower().split()
+	evl = evl.lower().split()
 
 	N = len(evl)
 	N_ref = len(ref)

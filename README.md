@@ -21,7 +21,7 @@ Further information on p. 880 of the textbook.
 
 - [ ] logs
 - [ ] just reset at each iteration or completely recreate? (applies to multiple data structures)
-
+- [ ] remove stop words for translating IBM Model 1 probabilities (maybe directly translate each stop word?)
 
 ## Pseudocode
 
