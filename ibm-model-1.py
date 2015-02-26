@@ -7,10 +7,8 @@ import math
 import collections
 import copy
 import re
-import pprint
 from datetime import datetime
 
-pp = pprint.PrettyPrinter(indent=3)
 PATH_TO_TRAIN = './es-en/train/'
 PATH_TO_DEV = './es-en/dev/'
 FILENAME = 'europarl-v7.es-en'
@@ -134,20 +132,12 @@ class M1:
       #   print spanish_word + ":" + max_prob_engligh_word + "   " + str(max_prob)
 
 
-  def find_probabilities(self):
-    temp = dict.fromkeys(self.en_vocab, 1.0/len(self.en_vocab))
-    temp_dict = {}
-    for key in self.sp_vocab:
-      temp_dict[key] = copy.deepcopy(temp)
-    return temp_dict
-
   def init_transl_probs(self):
     num_english_words = len(self.en_vocab_list)
     starting_prob = 1.0/num_english_words
     temp = [starting_prob] * num_english_words
     for i in range(0, len(self.sp_vocab_list)):
       self.sp_vocab_list[i] = temp[0:]
-    print self.sp_vocab_list
 
   ##
   # Takes in an array of sentences of sp and en words
