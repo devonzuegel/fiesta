@@ -9,7 +9,8 @@ import copy
 import re
 import pickle
 
-EMPTY_TRANSL_PROBS_CACHE = 'empty_transl_probs.pickle'
+UNIFORM_COUNTS_CACHE = 'uniform_counts.pickle'
+UNIFORM_TRANSL_PROBS_CACHE = 'uniform_transl_probs.pickle'
 TRANSL_PROBS_CACHE = 'transl_probs.pickle'
 DELETE_CACHE = False
 
@@ -82,7 +83,7 @@ class m1:
     self.en_vocab = set()
     self.sp_vocab = set()
 
-    print '=== Extracting lines from file...'
+    print '\n=== Extracting lines from file...'
     # sp_doc = get_lines_of_file('%seuroparl-v7.es-en.es' % (PATH_TO_TRAIN))
     sp_doc = ["yo tengo un perro", "yo tengo", "perro es mio", "yo soy devon", "tengo perro"]
     # en_doc = get_lines_of_file('%seuroparl-v7.es-en.en' % (PATH_TO_TRAIN))
@@ -95,52 +96,56 @@ class m1:
     # to probability of that english word beign the correct translation. every translation
     # probability is initialized to 1/#english words since every word is equally likely to 
     # be the correct translation).
-    print '=== Initializing transl_probs (should take a while)...'
     self.init_transl_probs()
 
-    # Initialize counts and totals to be used in main loop. 
-    print '=== Initializing counts_table...'
+    # Init counts & totals uniformly to be later used/updated in main loop. 
     self.init_counts_table()
     
 
     if os.path.exists(TRANSL_PROBS_CACHE):
-      print '=== Loading TRANSL_PROBS_CACHE...'
-      # Load values from file.
-      with open(TRANSL_PROBS_CACHE, "rb") as f:     self.transl_probs = pickle.load(f) 
+      print '\n=== Loading TRANSL_PROBS_CACHE...'
+      with open(TRANSL_PROBS_CACHE, 'rb') as f:  # Load values from file.
+        self.transl_probs = pickle.load(f) 
     else:
-      print '=== Building TRANSL_PROBS_CACHE...'
-      # Find translation probabilities.
-      self.execute_algorithm(sentence_pairs)
-      # Save into file.
-      with open(TRANSL_PROBS_CACHE, 'wb') as f:     pickle.dump(self.transl_probs, f)     
+      print '\n=== Building TRANSL_PROBS_CACHE...'
+      self.execute_algorithm(sentence_pairs)     # Find translation probabilities.
+      with open(TRANSL_PROBS_CACHE, 'wb') as f:  # Save into file.
+        pickle.dump(self.transl_probs, f)     
     
     # Print out highest probability translation for each word.
-    print '=== Printing results...'
+    print '\n=== Printing results...\n'
     self.highest_prob_pairs()
 
 
   def init_transl_probs(self):
     self.transl_probs = {}    
-    if os.path.exists(EMPTY_TRANSL_PROBS_CACHE):
-      print '=== Loading EMPTY_TRANSL_PROBS_CACHE...'
-      # Load values from file.
-      with open(EMPTY_TRANSL_PROBS_CACHE, "rb") as f:
+    if os.path.exists(UNIFORM_TRANSL_PROBS_CACHE):
+      print '\n=== Loading UNIFORM_TRANSL_PROBS_CACHE...'  # Message.
+      with open(UNIFORM_TRANSL_PROBS_CACHE, 'rb') as f:  # Load values from file.
         self.transl_probs = pickle.load(f) 
     else:
-      print '=== Building EMPTY_TRANSL_PROBS_CACHE now...'
+      print '\n=== Building UNIFORM_TRANSL_PROBS_CACHE...'
       num_english = len(self.en_vocab)
       temp = dict.fromkeys(self.en_vocab, 1.0/num_english)
-      for key in self.sp_vocab:
+      for key in self.sp_vocab:                          # Create deep copies.
         self.transl_probs[key] = copy.deepcopy(temp)
-      with open(EMPTY_TRANSL_PROBS_CACHE, 'wb') as f:     pickle.dump(self.transl_probs, f)     
+      with open(UNIFORM_TRANSL_PROBS_CACHE, 'wb') as f:  # Save into file.
+        pickle.dump(self.transl_probs, f)     
 
 
   def init_counts_table(self):
-    # TODO: build cache
     self.counts = {}
-    temp = dict.fromkeys(self.en_vocab, 0)
-    for key in self.sp_vocab:
-      self.counts[key] = copy.deepcopy(temp)
+    if os.path.exists(UNIFORM_COUNTS_CACHE):
+      print '\n=== Loading UNIFORM_COUNTS_CACHE...'  # Message.
+      with open(UNIFORM_COUNTS_CACHE, 'rb') as f:  # Load values from file.
+        self.counts = pickle.load(f) 
+    else:
+      print '\n=== Building UNIFORM_COUNTS_CACHE...'
+      temp = dict.fromkeys(self.en_vocab, 0)
+      for key in self.sp_vocab:                    # Create deep copies.
+        self.counts[key] = copy.deepcopy(temp)
+      with open(UNIFORM_COUNTS_CACHE, 'wb') as f:  # Save into file.
+        pickle.dump(self.counts, f)
 
 
   def execute_algorithm(self, sentence_pairs, n_iterations=1):
@@ -231,8 +236,12 @@ def get_lines_of_file(filename):
 
 def offer_to_delete_cache():
 
+  r = raw_input('\nDelete any caches? (y/n): ').lower()
+  if not ((r == 'y') or (r == 'yes')):
+    return
+
   if os.path.exists(TRANSL_PROBS_CACHE):
-    r = raw_input('Delete the full cache? (y/n): ').lower()
+    r = raw_input('\nDelete the **full transl_probs** cache? (y/n): ').lower()
 
     # Defaults to False.
     DELETE_CACHE = (r == 'y') or (r == 'yes')
@@ -241,16 +250,25 @@ def offer_to_delete_cache():
       print 'Deleting full cache....'
       os.remove(TRANSL_PROBS_CACHE)
 
-  if os.path.exists(EMPTY_TRANSL_PROBS_CACHE):
-    r = raw_input('Delete the uniform cache? (y/n): ').lower()
+  if os.path.exists(UNIFORM_TRANSL_PROBS_CACHE):
+    r = raw_input('\nDelete the **uniform transl_probs** cache? (y/n): ').lower()
 
     # Defaults to False.
     DELETE_CACHE = (r == 'y') or (r == 'yes')
 
     if DELETE_CACHE:
-      print 'Deleting uniform cache....'
-      os.remove(EMPTY_TRANSL_PROBS_CACHE)
+      print 'Deleting uniform transl_probs cache....'
+      os.remove(UNIFORM_TRANSL_PROBS_CACHE)
 
+  if os.path.exists(UNIFORM_COUNTS_CACHE):
+    r = raw_input('\nDelete the **uniform counts** cache? (y/n): ').lower()
+
+    # Defaults to False.
+    DELETE_CACHE = (r == 'y') or (r == 'yes')
+
+    if DELETE_CACHE:
+      print 'Deleting uniform counts cache....'
+      os.remove(UNIFORM_COUNTS_CACHE)
 
 if __name__ == "__main__":
   offer_to_delete_cache()
