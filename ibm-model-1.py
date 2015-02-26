@@ -99,18 +99,18 @@ class M1:
 
     for pair in sentence_pairs:
       total_e = [0] * len(self.sp_vocab)
-      sp_sentence = pair[0]
-      en_sentence = pair[1]
-
+      sp_sentence = pair[0].split()
+      en_sentence = pair[1].split()
+      ##
       # Find index of each word in the sentence (both Spanish & English)
       # in the `self.e*_vocab` sorted list.
       sp_word_indices = get_word_indices(sp_sentence, self.sp_vocab)
       en_word_indices = get_word_indices(en_sentence, self.en_vocab)
 
-    #   for en_word in en_sentence.split():
-    #     for sp_word in sp_sentence.split():
-    #       en_i = binary_search(self.en_vocab, en_word)
-    #       total_e
+      for en_word in en_sentence:
+        for sp_word in sp_sentence:
+          en_i = binary_search(self.en_vocab, en_word)
+          total_e
 
 
   ################ algorithm ################
@@ -248,9 +248,9 @@ class M1:
     return tuples
 
 def get_word_indices(sentence, vocab):
-  n_words = len(sentence.split())
+  n_words = len(sentence)
   word_indices = [0]*n_words
-  for i, word in enumerate(sentence.split()):
+  for i, word in enumerate(sentence):
     word_indices[i] = binary_search(vocab, word)
   return word_indices
 
