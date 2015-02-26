@@ -147,6 +147,7 @@ class M1:
     temp = [starting_prob] * num_english_words
     for i in range(0, len(self.sp_vocab_list)):
       self.sp_vocab_list[i] = temp[0:]
+    print self.sp_vocab_list
 
   ##
   # Takes in an array of sentences of sp and en words
