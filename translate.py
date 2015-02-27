@@ -21,10 +21,10 @@ FILENAME = 'test2'
 
 def main():
   m1 = M1()
-  # sp_sentence = 'Ahora bien , se ha demostrado que no es así .'.split()
-  # for sp_word in sp_sentence:
-  #   top_translation = m1.top_english_word(sp_word)
-  #   print top_translation
+  sp_sentence = 'Ahora bien , se ha demostrado que no es así .'.split()
+  for sp_word in sp_sentence:
+    top_translation = m1.top_english_word(sp_word)
+    print top_translation
 
 if __name__ == "__main__":
   startTime = datetime.now()

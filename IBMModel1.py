@@ -15,6 +15,7 @@ PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
 FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
+N_ITERATIONS = 10
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
   '\\xc2\\xbf' : '',
@@ -87,10 +88,24 @@ class M1:
     en_doc = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
     
     sentence_pairs = self.deconstuct_sentences(sp_doc, en_doc)
-  
-    transl_probs = self.train_transl_probs(sentence_pairs)
+    self.transl_probs = self.train_transl_probs(sentence_pairs)
 
-    print_best_translations(transl_probs, self.sp_vocab, self.en_vocab)
+    print_best_translations(self.transl_probs, self.sp_vocab, self.en_vocab)
+
+
+  def top_english_word(self, sp_word):
+    if sp_word not in self.sp_vocab:   return sp_word
+
+    sp_row = get_word_index(sp_word, self.sp_vocab)
+    # print '%d  %s' % (sp_row, sp_word)
+
+    row = self.transl_probs[sp_row]
+    max_prob = max(row)
+    i_of_max = row.index(max_prob)
+    top_en_translation = self.en_vocab[i_of_max]
+    print '%s : %s' % (sp_word, top_en_translation)
+    return top_en_translation
+
 
   ##
     # Initialize transl_probs uniformly. It's table from spanish words to
@@ -157,7 +172,7 @@ class M1:
     print '\n=== Initializing transl_probs & counts...'
     transl_probs = self.init_transl_probs()
 
-    for x in xrange(1,20):
+    for x in xrange(1, N_ITERATIONS):
       counts       = self.init_counts()
       total_s      = [0] * len(self.sp_vocab)
 
@@ -252,9 +267,11 @@ def get_word_indices(sentence, vocab):
   n_words = len(sentence)
   word_indices = [0]*n_words
   for i, word in enumerate(sentence):
-    word_indices[i] = binary_search(vocab, word)
+    word_indices[i] = get_word_index(word, vocab)
   return word_indices
 
+def get_word_index(word, vocab):
+  return binary_search(vocab, word)
 
 ##
 # Code for reading a file.  you probably don't want to modify anything here, 
