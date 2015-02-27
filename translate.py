@@ -44,6 +44,8 @@ def main():
   sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
   goal_transln = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
 
+  file_translated = open(FILENAME + '_translanted', 'w')
+
   for i, sp_sentence in enumerate(sp_sentences):
     print '\n'
     print 'Spanish:  %s' % sp_sentence.replace('\n', '')
@@ -61,8 +63,10 @@ def main():
       else:
         en_translation += '%s ' % m1.top_english_word(sp_word_stemmed)
 
+    file_translated.write(en_translation + '\n')
     print 'English:  %s' % en_translation
     print '   Goal:  %s' % goal_transln[i]
+  file_translated.close()
 
 def get_lines_of_file(fileName):
   with open(fileName,'r') as f:
