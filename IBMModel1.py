@@ -47,11 +47,15 @@ class M1:
     
     sentence_pairs = self.deconstuct_sentences(sp_doc, en_doc)
 
-    # self.build_vocab_indices()
-    ##
-    # Build dict for each vocabulary in which keys are words and their
-    # values are their respective indices. This will allow lookup of
-    # words from row/column in the `transl_probs` & `counts` tables.
+    self.build_vocab_indices()
+
+    self.transl_probs = self.train_transl_probs(sentence_pairs)
+
+  ##
+  # Build dict for each vocabulary in which keys are words and their
+  # values are their respective indices. This will allow lookup of
+  # words from row/column in the `transl_probs` & `counts` tables.
+  def build_vocab_indices(self):
     self.en_vocab_indices = {}
     self.sp_vocab_indices = {}
 
@@ -62,7 +66,6 @@ class M1:
       word = self.sp_vocab[i]
       self.sp_vocab_indices[word] = i
 
-    self.transl_probs = self.train_transl_probs(sentence_pairs)
 
   def top_english_word(self, sp_word):
     if sp_word not in self.sp_vocab:
