@@ -102,9 +102,8 @@ class M1:
     for x in xrange(0, N_ITERATIONS):
       print '\n=== %d Training translation probabilities...' % (x + 1)
       print 'Time elapsed (BEGIN):   %s' % (str(datetime.now() - startTime))
-      counts       = self.init_counts()
-      total_s      = [0] * self.n_sp_words
-
+      counts = self.init_counts()
+      total_s = [0] * self.n_sp_words
 
       print 'Time elapsed (BEFORE FIRST LOOP):   %s' % (str(datetime.now() - startTime))
       for pair in sentence_pairs:
@@ -172,6 +171,10 @@ def get_word_indices(sentence, vocab_indices):
   word_indices = [0]*n_words
   for i, word in enumerate(sentence):
     word_indices[i] = vocab_indices[word]
+
+  ## TODO: might be able to replace the above with:
+  # word_indices = [vocab_indices[word] for i, word in enumerate(sentence)]
+
   return word_indices
 
 
