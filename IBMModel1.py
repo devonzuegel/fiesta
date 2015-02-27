@@ -15,8 +15,8 @@ import numpy as np
 
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
-FILENAME = 'europarl-v7.es-en'
-# FILENAME = 'test2'
+# FILENAME = 'europarl-v7.es-en'
+FILENAME = 'test2'
 N_ITERATIONS = 10
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
@@ -98,7 +98,7 @@ class M1:
   def top_english_word(self, sp_word):
     if sp_word not in self.sp_vocab:   return sp_word
 
-    sp_row = get_word_index(sp_word, self.sp_vocab)
+    sp_row = self.sp_vocab_indices[sp_word]
 
     row = list(self.transl_probs[sp_row,:])
     max_prob = max(row)
@@ -193,8 +193,8 @@ class M1:
         ##
         # Find index of each word in the sentence (both Spanish & English)
         # in the `self.e*_vocab` sorted list.
-        sp_word_indices = get_word_indices(sp_sentence, self.sp_vocab)
-        en_word_indices = get_word_indices(en_sentence, self.en_vocab)
+        sp_word_indices = get_word_indices(sp_sentence, self.sp_vocab_indices)
+        en_word_indices = get_word_indices(en_sentence, self.en_vocab_indices)
 
 
         for e in range(len(en_sentence)):    # Each index `e` in English sentence
@@ -274,15 +274,13 @@ def print_best_translations(transl_probs, sp_vocab, en_vocab):
     #print '%s : %s    %f' % (sp_vocab[sp_row], en_vocab[i_of_max], max_prob)
 
 
-def get_word_indices(sentence, vocab):
+def get_word_indices(sentence, vocab_indices):
   n_words = len(sentence)
   word_indices = [0]*n_words
   for i, word in enumerate(sentence):
-    word_indices[i] = get_word_index(word, vocab)
+    word_indices[i] = vocab_indices[word]
   return word_indices
 
-def get_word_index(word, vocab):
-  return binary_search(vocab, word)
 
 ##
 # Code for reading and tokenizing a file.
