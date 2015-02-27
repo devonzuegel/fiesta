@@ -291,4 +291,13 @@ def get_lines_of_file(fileName):
   return lines
 
 
+def main():
+  m = M1()
+
+
+if __name__ == "__main__":
+  startTime = datetime.now()
+  main()
+  print 'Time elapsed:   %s' % (str(datetime.now() - startTime))
+
   
