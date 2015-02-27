@@ -182,7 +182,6 @@ class M1:
 
       print 'Time elapsed (BEFORE FIRST LOOP):   %s' % (str(datetime.now() - startTime))
       for pair in sentence_pairs:
-        #print 'Time elapsed (train):   %s' % (str(datetime.now() - startTime))
         total_e = [0] * self.sp_vocab_len
         sp_sentence = pair[0].split()
         en_sentence = pair[1].split()
@@ -212,10 +211,10 @@ class M1:
 
       print 'Time elapsed (BEFORE SECOND LOOP):   %s' % (str(datetime.now() - startTime))
       for sp_i in range(self.sp_vocab_len):
-        for en_i in range(self.en_vocab_len):
-          if total_s[sp_i]:
+        if total_s[sp_i]:
+	        for en_i in range(self.en_vocab_len):
             transl_probs[sp_i][en_i] = counts[sp_i][en_i] / (total_s[sp_i] * 1.0)
-          #transl_probs[sp_i][en_i] = 0 if (total_s_at_sp_i == 0) else counts[sp_i][en_i] / (total_s_at_sp_i * 1.0)
+            #transl_probs[sp_i][en_i] = 0 if (total_s_at_sp_i == 0) else counts[sp_i][en_i] / (total_s_at_sp_i * 1.0)
 
       print 'Time elapsed (AFTER SECOND LOOP):   %s' % (str(datetime.now() - startTime))
     return transl_probs
