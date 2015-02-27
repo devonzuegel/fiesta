@@ -10,6 +10,8 @@ import re
 from datetime import datetime
 from bisect import bisect_left
 
+import numpy as np
+
 
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
@@ -92,15 +94,13 @@ class M1:
     self.sp_vocab_len = 0
     self.en_vocab_len = 0
 
-    # print_best_translations(self.transl_probs, self.sp_vocab, self.en_vocab)
-
 
   def top_english_word(self, sp_word):
     if sp_word not in self.sp_vocab:   return sp_word
 
     sp_row = self.sp_vocab_indices[sp_word]
 
-    row = self.transl_probs[sp_row]
+    row = list(self.transl_probs[sp_row,:])
     max_prob = max(row)
     i_of_max = row.index(max_prob)
     top_en_translation = self.en_vocab[i_of_max]
@@ -117,51 +117,55 @@ class M1:
     ##
     # Initialize the "rows" (corresponding to a Spanish word) for the
     # `transl_probs` table.
-    transl_probs = [None] * self.sp_vocab_len
+    # transl_probs = [None] * self.sp_vocab_len
 
-    # Get the size of the english vocab.
-    num_english_words = self.en_vocab_len
-    # Compute a starting prob, initially uniform to all entries.
-    starting_prob = 1.0/num_english_words
+    # # Get the size of the english vocab.
+    # num_english_words = self.en_vocab_len
+    # # Compute a starting prob, initially uniform to all entries.
+    # starting_prob = 1.0/num_english_words
 
-    ##
-    # Initalize a single row. Each column should begin with the same
-    # starting probability, which will later be updated through the
-    # algorithm.
-    row = [starting_prob] * num_english_words
+    # ##
+    # # Initalize a single row. Each column should begin with the same
+    # # starting probability, which will later be updated through the
+    # # algorithm.
+    # row = [starting_prob] * num_english_words
 
-    ##
-    # For each row (corresponding to a Spanish word), make a DEEP COPY
-    # of that row so that they can be updated as individuals (as
-    # opposed to all pointing to the same list).
-    for i in range(0, len(transl_probs)):
-      transl_probs[i] = row[0:]
+    # ##
+    # # For each row (corresponding to a Spanish word), make a DEEP COPY
+    # # of that row so that they can be updated as individuals (as
+    # # opposed to all pointing to the same list).
+    # for i in range(0, len(transl_probs)):
+    #   transl_probs[i] = row[0:]
+
+    transl_probs = np.ones((self.sp_vocab_len, self.en_vocab_len)) * 1.0 / self.en_vocab_len
 
     return transl_probs
 
 
   # Create the counts table.
   def init_counts(self):
-    ##
-    # Initialize the "rows" (corresponding to a Spanish word) for the
-    # `counts` table.
-    counts = [None] * self.sp_vocab_len
+    # ##
+    # # Initialize the "rows" (corresponding to a Spanish word) for the
+    # # `counts` table.
+    # counts = [None] * self.sp_vocab_len
 
-    # Get the size of the english vocab.
-    num_english_words = self.en_vocab_len
+    # # Get the size of the english vocab.
+    # num_english_words = self.en_vocab_len
 
-    ##
-    # Initalize a single row. Each column should begin with the same
-    # starting probability, which will later be updated through the
-    # algorithm.
-    row = [0] * num_english_words
+    # ##
+    # # Initalize a single row. Each column should begin with the same
+    # # starting probability, which will later be updated through the
+    # # algorithm.
+    # row = [0] * num_english_words
 
-    ##
-    # For each row (corresponding to a Spanish word), make a DEEP COPY
-    # of that row so that they can be updated as individuals (as
-    # opposed to all pointing to the same list).
-    for i in range(0, len(counts)):
-      counts[i] = row[0:]
+    # ##
+    # # For each row (corresponding to a Spanish word), make a DEEP COPY
+    # # of that row so that they can be updated as individuals (as
+    # # opposed to all pointing to the same list).
+    # for i in range(0, len(counts)):
+    #   counts[i] = row[0:]
+
+    counts = np.zeros((self.sp_vocab_len, self.en_vocab_len))
 
     return counts
 
@@ -210,11 +214,9 @@ class M1:
             total_s[sp_row] += additional_prob
 
       print 'Time elapsed (BEFORE SECOND LOOP):   %s' % (str(datetime.now() - startTime))
-      for sp_i in range(self.sp_vocab_len):
-        if total_s[sp_i]:
-          for en_i in range(self.en_vocab_len):
-            transl_probs[sp_i][en_i] = counts[sp_i][en_i] / (total_s[sp_i] * 1.0)
-            #transl_probs[sp_i][en_i] = 0 if (total_s_at_sp_i == 0) else counts[sp_i][en_i] / (total_s_at_sp_i * 1.0)
+
+      total_s = np.sum(transl_probs, axis=1)
+      transl_prob = counts * 1.0 / total_s.reshape((self.sp_vocab_len, 1))
 
       print 'Time elapsed (AFTER SECOND LOOP):   %s' % (str(datetime.now() - startTime))
     return transl_probs
