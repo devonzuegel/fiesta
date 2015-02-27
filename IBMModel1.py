@@ -176,10 +176,11 @@ class M1:
 
     startTime = datetime.now()
     for x in xrange(1, N_ITERATIONS):
+      print '\n=== %d Training translation probabilities...' % (x)
+      print 'Time elapsed (BEGIN):   %s' % (str(datetime.now() - startTime))
       counts       = self.init_counts()
       total_s      = [0] * self.sp_vocab_len
 
-      print '\n=== %d Training translation probabilities...' % (x)
 
       print 'Time elapsed (BEFORE FIRST LOOP):   %s' % (str(datetime.now() - startTime))
       for pair in sentence_pairs:
@@ -212,16 +213,13 @@ class M1:
             total_s[sp_row] += additional_prob
 
       print 'Time elapsed (BEFORE SECOND LOOP):   %s' % (str(datetime.now() - startTime))
-      print self.sp_vocab_len
-      print self.en_vocab_len
       for sp_i in range(self.sp_vocab_len):
         for en_i in range(self.en_vocab_len):
-          total_s_at_sp_i = total_s[sp_i]
-          if total_s_at_sp_i != 0:
-            transl_probs[sp_i][en_i] = counts[sp_i][en_i] / (total_s_at_sp_i * 1.0)
+          if total_s[sp_i]:
+            transl_probs[sp_i][en_i] = counts[sp_i][en_i] / (total_s[sp_i] * 1.0)
           #transl_probs[sp_i][en_i] = 0 if (total_s_at_sp_i == 0) else counts[sp_i][en_i] / (total_s_at_sp_i * 1.0)
 
-      print 'Time elapsed (after second loop):   %s' % (str(datetime.now() - startTime))
+      print 'Time elapsed (AFTER SECOND LOOP):   %s' % (str(datetime.now() - startTime))
     return transl_probs
 
   ##
