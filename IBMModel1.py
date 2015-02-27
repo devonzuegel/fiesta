@@ -13,7 +13,7 @@ import numpy as np
 
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
-# FILENAME = 'europarl-v7.es-en'
+#FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
 N_ITERATIONS = 2
 UTF_SPECIAL_CHARS = {
@@ -51,6 +51,7 @@ class M1:
 
     self.transl_probs = self.train_transl_probs(sentence_pairs)
 
+
   ##
   # Build dict for each vocabulary in which keys are words and their
   # values are their respective indices. This will allow lookup of
@@ -71,9 +72,22 @@ class M1:
     if sp_word not in self.sp_vocab:
       return sp_word
 
+    #print self.en_unigram_counts
     sp_row = self.sp_vocab_indices[sp_word]
-    i_of_max = np.argmax(self.transl_probs[sp_row])
 
+    adjusted_probs = copy.deepcopy(self.transl_probs[sp_row]) #self.transl_probs
+    for i in range(len(adjusted_probs)):
+      #print self.get_unigram_probability(self.en_vocab[i])
+      adjusted_probs[i] /= self.get_unigram_probability(self.en_vocab[i])
+      #print adjusted_probs[i]
+    i_of_max = np.argmax(adjusted_probs)
+    #return i_of_max
+    # max_prob = 
+    # max_prob_index = 
+    # for index in range(0, len(self.transl_probs[sp_row])):
+    #   new_prob = self.transl_probs[sp_row][index] * get_unigram_probability[]
+    #print "TEST"
+    #print self.en_vocab[i_of_max]
     return self.en_vocab[i_of_max]  # Top English translation for sp_word
 
 
@@ -140,6 +154,10 @@ class M1:
       print 'Time elapsed (AFTER SECOND LOOP):   %s' % (str(datetime.now() - startTime))
     return transl_probs
 
+
+  def get_unigram_probability(self, sp_word):
+    return self.en_unigram_counts[sp_word] * (1.0) / self.total_num_words
+
   ##
   # Takes in an array of sentences of sp and en words
   # returns tuples in the form of (sp sentence, en sentence)
@@ -149,9 +167,15 @@ class M1:
     # Iterate through all English & Spanish sentences & add each word
     # to the respective vocabularies.
     en_vocab, sp_vocab = set(), set()
+    self.en_unigram_counts = collections.defaultdict(lambda:0) 
+    self.total_num_words = 0 
+
+
     for en_sentence in en_doc:
       for en_word in en_sentence.split(' '):
+        self.en_unigram_counts[en_word] += 1
         en_vocab.add(en_word)
+        self.total_num_words += 1
     for sp_sentence in sp_doc:
       for sp_word in sp_sentence.split(' '):
         sp_vocab.add(sp_word)
@@ -163,6 +187,7 @@ class M1:
 
     # Build list of sentence pair tuples.
     return [(sp_doc[i], en_doc[i]) for i, sp_sentence in enumerate(sp_doc)]
+
 
 
 def get_word_indices(sentence, vocab_indices):
