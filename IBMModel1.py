@@ -13,7 +13,7 @@ from bisect import bisect_left
 
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
-FILENAME = 'europarl-v7.es-en'
+# FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
 N_ITERATIONS = 10
 UTF_SPECIAL_CHARS = {
@@ -308,13 +308,5 @@ def get_lines_of_file(fileName):
   return lines
 
 
-def main():
-  m = M1()
-
-
-if __name__ == "__main__":
-  startTime = datetime.now()
-  main()
-  print 'Time elapsed:   %s' % (str(datetime.now() - startTime))
 
   
