@@ -53,15 +53,22 @@ def main():
     sp_words = sp_sentence.split()
     en_translation = ''
 
-    for sp_word in sp_words:
+    for i in range(len(sp_words)):
+      sp_word = sp_words[i]
       sp_word_stemmed = tokenize_sp_stemmed(sp_word)
+
+      bigram = 'X'
+      if i > 2:
+      	english_translation_so_far = en_translation.split()
+      	#TODO: rename 
+      	bigram = english_translation_so_far[i - 2] + " " + english_translation_so_far[i - 3]
 
       # Deals with punctuation, etc. 
       if sp_word_stemmed not in m1.sp_vocab and sp_word not in SPANISH_PUNCTUATION:
         en_translation += '%s ' % sp_word     # TODO: this part is super bad
       # Typical words
       else:
-        en_translation += '%s ' % m1.top_english_word(sp_word_stemmed)
+        en_translation += '%s ' % m1.top_english_word(sp_word_stemmed, bigram)
 
     file_translated.write(en_translation + '\n')
     print 'English:  %s' % en_translation
