@@ -9,13 +9,13 @@ import copy
 import re
 from datetime import datetime
 from bisect import bisect_left
-
+import numpy as np
 
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
 # FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
-N_ITERATIONS = 10
+N_ITERATIONS = 2
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
   '\\xc2\\xbf' : '',
@@ -74,6 +74,8 @@ UTF_SPECIAL_CHARS = {
   #     'dog': .3
   #   }
   # }
+
+  # transl_probs = np.ones((self.sp_vocab_len, self.en_vocab_len)) * 1.0 / self.en_vocab_len
 class M1:
 
   # IBM Model 1 initialization
@@ -108,6 +110,12 @@ class M1:
     # initialized to (1/# english words) since every word is equally
     # likely to be the correct translation.
   def init_transl_probs(self):
+
+    
+    ###### uniform_prob = 1.0 / self.en_vocab_len
+    ###### transl_probs = np.ones((self.sp_vocab_len, self.en_vocab_len)) * uniform_prob
+    
+
     ##
     # Initialize the "rows" (corresponding to a Spanish word) for the
     # `transl_probs` table.
@@ -136,29 +144,7 @@ class M1:
 
   # Create the counts table.
   def init_counts(self):
-    ##
-    # Initialize the "rows" (corresponding to a Spanish word) for the
-    # `counts` table.
-    counts = [None] * self.sp_vocab_len
-
-    # Get the size of the english vocab.
-    num_english_words = self.en_vocab_len
-
-    ##
-    # Initalize a single row. Each column should begin with the same
-    # starting probability, which will later be updated through the
-    # algorithm.
-    row = [0] * num_english_words
-
-    ##
-    # For each row (corresponding to a Spanish word), make a DEEP COPY
-    # of that row so that they can be updated as individuals (as
-    # opposed to all pointing to the same list).
-    for i in range(0, len(counts)):
-      counts[i] = row[0:]
-
-    return counts
-
+    return np.zeros((self.sp_vocab_len, self.en_vocab_len))
 
   def train_transl_probs(self, sentence_pairs):
 
