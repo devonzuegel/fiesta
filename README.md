@@ -68,7 +68,11 @@ Further information on p. 876 of the textbook.
 - "I am hungry." vs. "Tengo hambre."
 - "I'm cold." vs. "Me hace frio
 - removed spanish accented characters
-
+  - uppercased only the accented characters to differentiate between words in Spanish that are identical except for accented characters
+```
+union » union
+uniòn » uniOn
+```
 
 ## Our strategy to improve the baseline IBM Model 1 system
 *Your strategy to improve the baseline IBM model 1 system*

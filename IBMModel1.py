@@ -12,8 +12,8 @@ from bisect import bisect_left
 
 
 PATH_TO_TRAIN = './es-en/train/'
-PATH_TO_DEV = './es-en/dev/'
-# FILENAME = 'europarl-v7.es-en'
+# PATH_TO_DEV = './es-en/dev/'
+FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
@@ -156,42 +156,44 @@ class M1:
     # Initialize counts and totals to be used in main loop. 
     print '\n=== Initializing transl_probs & counts...'
     transl_probs = self.init_transl_probs()
-    counts       = self.init_counts()
-    total_s      = [0] * len(self.sp_vocab)
 
-    print '\n=== Training translation probabilities...'
-    for pair in sentence_pairs:
-      total_e = [0] * len(self.sp_vocab)
-      sp_sentence = pair[0].split()
-      en_sentence = pair[1].split()
+    for x in xrange(1,20):
+      counts       = self.init_counts()
+      total_s      = [0] * len(self.sp_vocab)
 
-      ##
-      # Find index of each word in the sentence (both Spanish & English)
-      # in the `self.e*_vocab` sorted list.
-      sp_word_indices = get_word_indices(sp_sentence, self.sp_vocab)
-      en_word_indices = get_word_indices(en_sentence, self.en_vocab)
+      print '\n=== %d Training translation probabilities...' % (x)
+      for pair in sentence_pairs:
+        total_e = [0] * len(self.sp_vocab)
+        sp_sentence = pair[0].split()
+        en_sentence = pair[1].split()
 
-      for e in range(len(en_sentence)):    # Each index `e` in English sentence
-        for s in range(len(sp_sentence)):  # Each index `s` in Spanish sentence
-          sp_row = sp_word_indices[s]  # Spanish words » rows of all tables
-          en_col = en_word_indices[e]  # English words » cols of all tables
+        ##
+        # Find index of each word in the sentence (both Spanish & English)
+        # in the `self.e*_vocab` sorted list.
+        sp_word_indices = get_word_indices(sp_sentence, self.sp_vocab)
+        en_word_indices = get_word_indices(en_sentence, self.en_vocab)
 
-          total_e[en_col] += transl_probs[sp_row][en_col]
-      
-      for e in range(len(en_sentence)):    # Each index `e` in English sentence
-        for s in range(len(sp_sentence)):  # Each index `s` in Spanish sentence
-          sp_row = sp_word_indices[s]  # Spanish words » rows of all tables
-          en_col = en_word_indices[e]  # English words » cols of all tables
+        for e in range(len(en_sentence)):    # Each index `e` in English sentence
+          for s in range(len(sp_sentence)):  # Each index `s` in Spanish sentence
+            sp_row = sp_word_indices[s]  # Spanish words » rows of all tables
+            en_col = en_word_indices[e]  # English words » cols of all tables
 
-          counts[sp_row][en_col] += transl_probs[sp_row][en_col] / (1.0*total_e[en_col])
-          total_s[sp_row] += transl_probs[sp_row][en_col] / (1.0*total_e[en_col])
+            total_e[en_col] += transl_probs[sp_row][en_col]
+        
+        for e in range(len(en_sentence)):    # Each index `e` in English sentence
+          for s in range(len(sp_sentence)):  # Each index `s` in Spanish sentence
+            sp_row = sp_word_indices[s]  # Spanish words » rows of all tables
+            en_col = en_word_indices[e]  # English words » cols of all tables
 
-    for sp_i in range(len(self.sp_vocab)):
-      for en_i in range(len(self.en_vocab)):
-        if total_s[sp_i] == 0:
-          transl_probs[sp_i][en_i] = 0
-        else:
-          transl_probs[sp_i][en_i] = counts[sp_i][en_i] / (total_s[sp_i] * 1.0)
+            counts[sp_row][en_col] += transl_probs[sp_row][en_col] / (1.0*total_e[en_col])
+            total_s[sp_row] += transl_probs[sp_row][en_col] / (1.0*total_e[en_col])
+
+      for sp_i in range(len(self.sp_vocab)):
+        for en_i in range(len(self.en_vocab)):
+          if total_s[sp_i] == 0:
+            transl_probs[sp_i][en_i] = 0
+          else:
+            transl_probs[sp_i][en_i] = counts[sp_i][en_i] / (total_s[sp_i] * 1.0)
 
     return transl_probs
 
@@ -243,7 +245,7 @@ def print_best_translations(transl_probs, sp_vocab, en_vocab):
     row = transl_probs[sp_row]
     max_prob = max(row)
     i_of_max = row.index(max_prob)
-    # print '%s : %s    %f' % (sp_vocab[sp_row], en_vocab[i_of_max], max_prob)
+    print '%s : %s    %f' % (sp_vocab[sp_row], en_vocab[i_of_max], max_prob)
 
 
 def get_word_indices(sentence, vocab):
@@ -288,14 +290,5 @@ def get_lines_of_file(fileName):
       lines.append(' '.join(line.split()))
   return lines
 
-
-def main():
-  m = M1()
-
-
-if __name__ == "__main__":
-  startTime = datetime.now()
-  main()
-  print 'Time elapsed:   %s' % (str(datetime.now() - startTime))
 
   
