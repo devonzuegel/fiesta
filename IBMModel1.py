@@ -97,8 +97,8 @@ class M1:
     sp_row = self.sp_vocab_indices[sp_word]
 
     row = self.transl_probs[sp_row]
-    max_prob = max(row)
-    i_of_max = row.where(max_prob)
+    # max_prob = max(row)
+    i_of_max = np.argmax(row) #row.where(max_prob)
     top_en_translation = self.en_vocab[i_of_max]
     return top_en_translation
 
