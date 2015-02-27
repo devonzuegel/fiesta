@@ -56,25 +56,6 @@ UTF_SPECIAL_CHARS = {
   #     for all e
   #       transl_prob(e|f) = count(e|f) / total(f)
 
-# Values for english within spanish word must sum to 1.0
-  # {
-  #   'Yo': {
-  #     'I': .3
-  #     'have': .4
-  #     'dog': .3
-  #   }
-  #   'tengo': {
-  #     'I': .3
-  #     'have': .4
-  #     'dog': .3
-  #   }
-  #   'perro': {
-  #     'I': .3
-  #     'have': .4
-  #     'dog': .3
-  #   }
-  # }
-
   # transl_probs = np.ones((self.sp_vocab_len, self.en_vocab_len)) * 1.0 / self.en_vocab_len
 class M1:
 
@@ -104,44 +85,18 @@ class M1:
 
 
   ##
-    # Initialize transl_probs uniformly. It's table from spanish words to
-    # english words (list of lists) to probability of that english word being
-    # the correct translation. Every translation probability is
-    # initialized to (1/# english words) since every word is equally
-    # likely to be the correct translation.
+  # Initialize transl_probs uniformly. It's table from spanish words to
+  # english words (list of lists) to probability of that english word being
+  # the correct translation. Every translation probability is
+  # initialized to (1/# english words) since every word is equally
+  # likely to be the correct translation.
   def init_transl_probs(self):
-
-
     uniform_prob = 1.0 / self.en_vocab_len
     num_en_words = len(self.en_vocab_indices)
     num_sp_words = len(self.sp_vocab_indices)
-    transl_probs = np.ones((num_sp_words, num_en_words)) * uniform_prob
-    
 
-    # ##
-      # # Initialize the "rows" (corresponding to a Spanish word) for the
-      # # `transl_probs` table.
-      # transl_probs = [None] * self.sp_vocab_len
-
-      # # Get the size of the english vocab.
-      # num_english_words = self.en_vocab_len
-      # # Compute a starting prob, initially uniform to all entries.
-      # starting_prob = 1.0/num_english_words
-
-      # ##
-      # # Initalize a single row. Each column should begin with the same
-      # # starting probability, which will later be updated through the
-      # # algorithm.
-      # row = [starting_prob] * num_english_words
-
-      # ##
-      # # For each row (corresponding to a Spanish word), make a DEEP COPY
-      # # of that row so that they can be updated as individuals (as
-      # # opposed to all pointing to the same list).
-      # for i in range(0, len(transl_probs)):
-      #   transl_probs[i] = row[0:]
-
-    return transl_probs
+    # Create matrix uniformly filled with `1*uniform_prob`
+    return np.ones((num_sp_words, num_en_words)) * uniform_prob
 
 
   # Create the counts table.
@@ -156,8 +111,8 @@ class M1:
     print '\n=== Initializing transl_probs & counts...'
     transl_probs = self.init_transl_probs()
     startTime = datetime.now()
-    for x in xrange(1, N_ITERATIONS):
-      print '\n=== %d Training translation probabilities...' % (x)
+    for x in xrange(0, N_ITERATIONS):
+      print '\n=== %d Training translation probabilities...' % (x + 1)
       print 'Time elapsed (BEGIN):   %s' % (str(datetime.now() - startTime))
       counts       = self.init_counts()
       total_s      = [0] * self.sp_vocab_len
@@ -169,20 +124,15 @@ class M1:
         sp_sentence = pair[0].split()
         en_sentence = pair[1].split()
 
-        # ##
-        # # Find index of each word in the sentence (both Spanish & English)
-        # # in the `self.e*_vocab` sorted list.
-        # sp_word_indices = get_word_indices(sp_sentence, self.sp_vocab_indices)
-        # en_word_indices = get_word_indices(en_sentence, self.en_vocab_indices)
-
+        ##
+        # TODO: consider calculating the vocab indices for the entire
+        # sentences here so there aren't `2ij` lookups.
 
         # Spanish words are the rows, English words are the columns
         for en_word in en_sentence:    # Each word in the English sentence
           for sp_word in sp_sentence:  # Each word in the Spanish sentence
             sp_row = self.sp_vocab_indices[sp_word]
             en_col = self.en_vocab_indices[en_word]
-
-            # print '%d  %d' % (sp_row, en_col)
             total_e[en_col] += transl_probs[sp_row][en_col]
         
         for en_word in en_sentence:    # Each word in the English sentence
@@ -199,7 +149,7 @@ class M1:
         if total_s[sp_i]:
           for en_i in range(self.en_vocab_len):
             transl_probs[sp_i][en_i] = counts[sp_i][en_i] / (total_s[sp_i] * 1.0)
-            #transl_probs[sp_i][en_i] = 0 if (total_s_at_sp_i == 0) else counts[sp_i][en_i] / (total_s_at_sp_i * 1.0)
+            # transl_probs[sp_i][en_i] = 0 if (total_s_at_sp_i == 0) else counts[sp_i][en_i] / (total_s_at_sp_i * 1.0)
 
       print 'Time elapsed (AFTER SECOND LOOP):   %s' % (str(datetime.now() - startTime))
     return transl_probs
@@ -241,7 +191,6 @@ class M1:
     for i in range(0, self.sp_vocab_len):
       word = self.sp_vocab[i]
       self.sp_vocab_indices[word] = i
-      if i == 1372: print '\n%s\n' % word
   
     # Build list of sentence pair tuples.
     tuples = []
@@ -256,7 +205,7 @@ def print_best_translations(transl_probs, sp_vocab, en_vocab):
     row = transl_probs[sp_row]
     max_prob = max(row)
     i_of_max = row.index(max_prob)
-    #print '%s : %s    %f' % (sp_vocab[sp_row], en_vocab[i_of_max], max_prob)
+    print '%s : %s    %f' % (sp_vocab[sp_row], en_vocab[i_of_max], max_prob)
 
 
 def get_word_indices(sentence, vocab_indices):

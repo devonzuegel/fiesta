@@ -16,6 +16,27 @@ sentences.
 
 Further information on p. 880 of the textbook.
 
+```
+# Values for english within spanish word must sum to 1.0
+# TODO: might be the other way aroundd!!!
+  # {
+  #   'Yo': {
+  #     'I': .3
+  #     'have': .4
+  #     'dog': .3
+  #   }
+  #   'tengo': {
+  #     'I': .3
+  #     'have': .4
+  #     'dog': .3
+  #   }
+  #   'perro': {
+  #     'I': .3
+  #     'have': .4
+  #     'dog': .3
+  #   }
+  # }
+```
 
 ---
 
