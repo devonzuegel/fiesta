@@ -182,7 +182,6 @@ class M1:
 
       print 'Time elapsed (BEFORE FIRST LOOP):   %s' % (str(datetime.now() - startTime))
       for pair in sentence_pairs:
-        #print 'Time elapsed (train):   %s' % (str(datetime.now() - startTime))
         total_e = [0] * self.sp_vocab_len
         sp_sentence = pair[0].split()
         en_sentence = pair[1].split()
