@@ -17,11 +17,42 @@ sentences.
 Further information on p. 880 of the textbook.
 
 
+---
+
 ## To Do
 
+### Programming
+
+- [x] implement IBM Model 1 on `train/` folder (Zoe, Tuesday/Wednesday)
+- [x] fix ascii-unicode-latin1 encoding issues (Devon, Tuesday night)
+- [x] implement caching with pickle in `transl_probs.pickle` (Devon, Wednesday night)
+- [x] multiple iterations
+- [x] self.sp_word_indices dictionary instead of binary search
+- [x] optimize algorithm ( @luttigdev )
+  - [ ] just reset at each iteration or completely recreate? (applies to multiple data structures)
+- [x] lowercase? DOESN'T MATTER
+
+- [ ] **implement evaluation/run-through for `dev/` folder through Bleu (Devon, Thursday afternoon)**
+- [ ] bigrams ??
+    - translating 2 words
+    
+- [ ] decide new priorities once we get Bleu working
+
+### Questions
 - [ ] logs
-- [ ] just reset at each iteration or completely recreate? (applies to multiple data structures)
-- [ ] lowercase?
+- [ ] Shouldn't remove &quot; and similar thingies
+
+- [ ]  COGNATES
+- [ ] implement evaluation/run-through for `dev/` folder through Bleu (Devon, Wednesday night)
+- [ ] add spanish language model (Thursday)
+
+### Report
+- [ ] all the things
+
+---
+
+
+@luttigdev @zrobert7 
 
 ## Pseudocode
 
