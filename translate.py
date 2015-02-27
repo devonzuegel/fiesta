@@ -60,25 +60,7 @@ def main():
       # Typical words
       else:
         en_translation += '%s ' % m1.top_english_word(sp_word_stemmed)
-        # print '%s  :  %s' % (sp_word, sp_word_stemmed)
 
-    # For each sp_word in sp_sentence_tokenized
-      # Get the best translation for that specific word
-      # Add it sentence (later put in bag for order, but for now keep same order)
-    # Print the resulting English sentence
-
-  # for sp_sentence in sp_sentences:
-  #   sp_words = sp_sentence.split()
-  #   en_translation = ''
-
-  #   print '\n================================\n'
-  #   for sp_word in sp_words:
-  #     sp_word_tokenized =
-  #     en_translation += '%s ' % m1.top_english_word(sp_word)
-    
-  #   print '\n=== Spanish sentence: ==='
-  #   print ' '.join(sp_words)
-    
     print 'English:  %s' % en_translation
     print '   Goal:  %s' % goal_transln[i]
 

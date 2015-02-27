@@ -15,7 +15,7 @@ PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
 #FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
-N_ITERATIONS = 2
+N_ITERATIONS = 20
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
   '\\xc2\\xbf' : '',
@@ -122,8 +122,7 @@ class M1:
       print 'Time elapsed (BEFORE FIRST LOOP):   %s' % (str(datetime.now() - startTime))
       for pair in sentence_pairs:
         total_e = [0] * self.n_sp_words
-        sp_sentence = pair[0].split()
-        en_sentence = pair[1].split()
+        sp_sentence, en_sentence = pair[0].split(), pair[1].split()
 
         ##
         # Calculating the vocab indices for each word in both sentences
@@ -150,7 +149,6 @@ class M1:
       
       total_s_reshaped = np.asarray(total_s).reshape(len(total_s), 1)
       transl_probs = counts / (total_s_reshaped * 1.0)
-      print transl_probs
       print 'Time elapsed (AFTER SECOND LOOP):   %s' % (str(datetime.now() - startTime))
     return transl_probs
 
@@ -182,6 +180,7 @@ class M1:
         
     # Build sorted vocab list.
     self.en_vocab, self.sp_vocab = list(sorted(en_vocab)), list(sorted(sp_vocab))
+
     # Save size of the Spanish & English vocabs in self attribute.
     self.n_en_words, self.n_sp_words = len(self.en_vocab), len(self.sp_vocab)
 
@@ -191,15 +190,8 @@ class M1:
 
 
 def get_word_indices(sentence, vocab_indices):
-  n_words = len(sentence)
-  word_indices = [0]*n_words
-  for i, word in enumerate(sentence):
-    word_indices[i] = vocab_indices[word]
+  return [vocab_indices[word] for i, word in enumerate(sentence)]
 
-  ## TODO: might be able to replace the above with:
-  # word_indices = [vocab_indices[word] for i, word in enumerate(sentence)]
-
-  return word_indices
 
 
 ##
