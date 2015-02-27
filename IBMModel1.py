@@ -166,15 +166,8 @@ class M1:
 
 
 def get_word_indices(sentence, vocab_indices):
-  n_words = len(sentence)
-  word_indices = [0]*n_words
-  for i, word in enumerate(sentence):
-    word_indices[i] = vocab_indices[word]
+  return [vocab_indices[word] for i, word in enumerate(sentence)]
 
-  ## TODO: might be able to replace the above with:
-  # word_indices = [vocab_indices[word] for i, word in enumerate(sentence)]
-
-  return word_indices
 
 
 ##
