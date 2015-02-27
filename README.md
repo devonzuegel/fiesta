@@ -72,9 +72,6 @@ Further information on p. 880 of the textbook.
 
 ---
 
-
-@luttigdev @zrobert7 
-
 ## Pseudocode
 
 ```python
