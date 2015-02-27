@@ -150,8 +150,7 @@ class M1:
     ##
     # Iterate through all English & Spanish sentences & add each word
     # to the respective vocabularies.
-    en_vocab = set()
-    sp_vocab = set()
+    en_vocab, sp_vocab = set(), set()
     for en_sentence in en_doc:
       for en_word in en_sentence.split(' '):
         en_vocab.add(en_word)
@@ -160,21 +159,12 @@ class M1:
         sp_vocab.add(sp_word)
         
     # Build sorted vocab list.
-    self.en_vocab = list(sorted(en_vocab))
-    self.sp_vocab = list(sorted(sp_vocab))
-    self.n_en_words = len(self.en_vocab)
-    self.n_sp_words = len(self.sp_vocab)
+    self.en_vocab, self.sp_vocab = list(sorted(en_vocab)), list(sorted(sp_vocab))
+    # Save size of the Spanish & English vocabs in self attribute.
+    self.n_en_words, self.n_sp_words = len(self.en_vocab), len(self.sp_vocab)
 
     # Build list of sentence pair tuples.
-    tuples = []
-    for i, sp_sentence in enumerate(sp_doc):
-      tuples.append((sp_doc[i], en_doc[i]))
-
-
-    self.n_en_words = len(self.en_vocab)
-    self.n_sp_words = len(self.sp_vocab)
-    # Return list of sentence pair tuples.
-    return tuples
+    return [(sp_doc[i], en_doc[i]) for i, sp_sentence in enumerate(sp_doc)]
 
 
 def get_word_indices(sentence, vocab_indices):
