@@ -15,7 +15,7 @@ PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
 FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
-N_ITERATIONS = 2
+N_ITERATIONS = 5
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
   '\\xc2\\xbf' : '',
@@ -73,15 +73,13 @@ class M1:
 
 
   def top_english_word(self, sp_word):
-    if sp_word not in self.sp_vocab:   return sp_word
+    if sp_word not in self.sp_vocab:
+      return sp_word
 
     sp_row = self.sp_vocab_indices[sp_word]
+    i_of_max = np.argmax(self.transl_probs[sp_row])
 
-    row = self.transl_probs[sp_row]
-    # max_prob = max(row)
-    i_of_max = np.argmax(row) #row.where(max_prob)
-    top_en_translation = self.en_vocab[i_of_max]
-    return top_en_translation
+    return self.en_vocab[i_of_max]  # Top English translation for sp_word
 
 
   ##
