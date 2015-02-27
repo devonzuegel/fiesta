@@ -34,27 +34,26 @@ UTF_SPECIAL_CHARS = {
   '&quot;' : ''
 }
 PATH_TO_TRAIN = './es-en/train/'
+FILENAME = 'test1'
 
 def main():
-  # m1 = M1()
+  m1 = M1()
 
-  sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, 'test0'))
+  sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
 
-  print sp_sentences
+  for sp_sentence in sp_sentences:
+    sp_words = sp_sentence.split()
+    en_translation = ''
 
-  # sp_sentence = '¿ Qué significa esto ? .'.split()
-  # en_translation = ''
-  # for sp_word in sp_sentence:
-  #   en_translation += ' %s' % m1.top_english_word(sp_word)
-  
-  # print 'Spanish sentence: ==='
-  # print ' '.join(sp_sentence)
-  
-  # print 'English translation: ==='
-  # print en_translation
-
-  # print 'Goal: ==='
-  # print 'What does this mean ?'
+    print '\n================================\n'
+    for sp_word in sp_words:
+      en_translation += '%s ' % m1.top_english_word(sp_word)
+    
+    print '\n=== Spanish sentence: ==='
+    print ' '.join(sp_words)
+    
+    print '\n=== English translation: ==='
+    print en_translation
 
 
 ##
@@ -95,6 +94,6 @@ def get_lines_of_file(fileName):
 if __name__ == "__main__":
   startTime = datetime.now()
   main()
-  print 'Time elapsed:   %s' % (str(datetime.now() - startTime))
+  print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
 
   

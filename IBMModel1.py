@@ -90,20 +90,18 @@ class M1:
     sentence_pairs = self.deconstuct_sentences(sp_doc, en_doc)
     self.transl_probs = self.train_transl_probs(sentence_pairs)
 
-    print_best_translations(self.transl_probs, self.sp_vocab, self.en_vocab)
+    # print_best_translations(self.transl_probs, self.sp_vocab, self.en_vocab)
 
 
   def top_english_word(self, sp_word):
     if sp_word not in self.sp_vocab:   return sp_word
 
     sp_row = get_word_index(sp_word, self.sp_vocab)
-    # print '%d  %s' % (sp_row, sp_word)
 
     row = self.transl_probs[sp_row]
     max_prob = max(row)
     i_of_max = row.index(max_prob)
     top_en_translation = self.en_vocab[i_of_max]
-    print '%s : %s' % (sp_word, top_en_translation)
     return top_en_translation
 
 
