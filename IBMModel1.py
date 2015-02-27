@@ -112,34 +112,34 @@ class M1:
   def init_transl_probs(self):
 
 
-    # uniform_prob = 1.0 / self.en_vocab_len
-    # num_en_words = self.en_vocab_len
-    # num_sp_words = self.en_vocab_len
-    # transl_probs = np.ones((num_sp_words, num_en_words)) * uniform_prob
+    uniform_prob = 1.0 / self.en_vocab_len
+    num_en_words = self.en_vocab_len
+    num_sp_words = self.en_vocab_len
+    transl_probs = np.ones((num_sp_words, num_en_words)) * uniform_prob
     
 
-    ##
-    # Initialize the "rows" (corresponding to a Spanish word) for the
-    # `transl_probs` table.
-    transl_probs = [None] * self.sp_vocab_len
+    # ##
+    # # Initialize the "rows" (corresponding to a Spanish word) for the
+    # # `transl_probs` table.
+    # transl_probs = [None] * self.sp_vocab_len
 
-    # Get the size of the english vocab.
-    num_english_words = self.en_vocab_len
-    # Compute a starting prob, initially uniform to all entries.
-    starting_prob = 1.0/num_english_words
+    # # Get the size of the english vocab.
+    # num_english_words = self.en_vocab_len
+    # # Compute a starting prob, initially uniform to all entries.
+    # starting_prob = 1.0/num_english_words
 
-    ##
-    # Initalize a single row. Each column should begin with the same
-    # starting probability, which will later be updated through the
-    # algorithm.
-    row = [starting_prob] * num_english_words
+    # ##
+    # # Initalize a single row. Each column should begin with the same
+    # # starting probability, which will later be updated through the
+    # # algorithm.
+    # row = [starting_prob] * num_english_words
 
-    ##
-    # For each row (corresponding to a Spanish word), make a DEEP COPY
-    # of that row so that they can be updated as individuals (as
-    # opposed to all pointing to the same list).
-    for i in range(0, len(transl_probs)):
-      transl_probs[i] = row[0:]
+    # ##
+    # # For each row (corresponding to a Spanish word), make a DEEP COPY
+    # # of that row so that they can be updated as individuals (as
+    # # opposed to all pointing to the same list).
+    # for i in range(0, len(transl_probs)):
+    #   transl_probs[i] = row[0:]
 
     return transl_probs
 
