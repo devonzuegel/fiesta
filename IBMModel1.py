@@ -13,7 +13,7 @@ from bisect import bisect_left
 
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
-# FILENAME = 'europarl-v7.es-en'
+FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
 N_ITERATIONS = 10
 UTF_SPECIAL_CHARS = {
@@ -89,6 +89,8 @@ class M1:
     
     sentence_pairs = self.deconstuct_sentences(sp_doc, en_doc)
     self.transl_probs = self.train_transl_probs(sentence_pairs)
+    self.sp_vocab_len = 0
+    self.en_vocab_len = 0
 
     # print_best_translations(self.transl_probs, self.sp_vocab, self.en_vocab)
 
@@ -115,10 +117,10 @@ class M1:
     ##
     # Initialize the "rows" (corresponding to a Spanish word) for the
     # `transl_probs` table.
-    transl_probs = [None] * len(self.sp_vocab)
+    transl_probs = [None] * self.sp_vocab_len
 
     # Get the size of the english vocab.
-    num_english_words = len(self.en_vocab)
+    num_english_words = self.en_vocab_len
     # Compute a starting prob, initially uniform to all entries.
     starting_prob = 1.0/num_english_words
 
@@ -143,10 +145,10 @@ class M1:
     ##
     # Initialize the "rows" (corresponding to a Spanish word) for the
     # `counts` table.
-    counts = [None] * len(self.sp_vocab)
+    counts = [None] * self.sp_vocab_len
 
     # Get the size of the english vocab.
-    num_english_words = len(self.en_vocab)
+    num_english_words = self.en_vocab_len
 
     ##
     # Initalize a single row. Each column should begin with the same
@@ -166,17 +168,22 @@ class M1:
 
   def train_transl_probs(self, sentence_pairs):
 
-    # Initialize counts and totals to be used in main loop. 
+    # Initialize counts and totals to be used in main loop.
     print '\n=== Initializing transl_probs & counts...'
     transl_probs = self.init_transl_probs()
 
+    startTime = datetime.now()
     for x in xrange(1, N_ITERATIONS):
-      counts       = self.init_counts()
-      total_s      = [0] * len(self.sp_vocab)
-
       print '\n=== %d Training translation probabilities...' % (x)
+      print 'Time elapsed (BEGIN):   %s' % (str(datetime.now() - startTime))
+      counts       = self.init_counts()
+      total_s      = [0] * self.sp_vocab_len
+
+
+      print 'Time elapsed (BEFORE FIRST LOOP):   %s' % (str(datetime.now() - startTime))
       for pair in sentence_pairs:
-        total_e = [0] * len(self.sp_vocab)
+        #print 'Time elapsed (train):   %s' % (str(datetime.now() - startTime))
+        total_e = [0] * self.sp_vocab_len
         sp_sentence = pair[0].split()
         en_sentence = pair[1].split()
 
@@ -185,6 +192,7 @@ class M1:
         # in the `self.e*_vocab` sorted list.
         sp_word_indices = get_word_indices(sp_sentence, self.sp_vocab)
         en_word_indices = get_word_indices(en_sentence, self.en_vocab)
+
 
         for e in range(len(en_sentence)):    # Each index `e` in English sentence
           for s in range(len(sp_sentence)):  # Each index `s` in Spanish sentence
@@ -198,16 +206,18 @@ class M1:
             sp_row = sp_word_indices[s]  # Spanish words » rows of all tables
             en_col = en_word_indices[e]  # English words » cols of all tables
 
-            counts[sp_row][en_col] += transl_probs[sp_row][en_col] / (1.0*total_e[en_col])
-            total_s[sp_row] += transl_probs[sp_row][en_col] / (1.0*total_e[en_col])
+            additional_prob = transl_probs[sp_row][en_col] / (1.0*total_e[en_col])
+            counts[sp_row][en_col] += additional_prob
+            total_s[sp_row] += additional_prob
 
-      for sp_i in range(len(self.sp_vocab)):
-        for en_i in range(len(self.en_vocab)):
-          if total_s[sp_i] == 0:
-            transl_probs[sp_i][en_i] = 0
-          else:
+      print 'Time elapsed (BEFORE SECOND LOOP):   %s' % (str(datetime.now() - startTime))
+      for sp_i in range(self.sp_vocab_len):
+        for en_i in range(self.en_vocab_len):
+          if total_s[sp_i]:
             transl_probs[sp_i][en_i] = counts[sp_i][en_i] / (total_s[sp_i] * 1.0)
+          #transl_probs[sp_i][en_i] = 0 if (total_s_at_sp_i == 0) else counts[sp_i][en_i] / (total_s_at_sp_i * 1.0)
 
+      print 'Time elapsed (AFTER SECOND LOOP):   %s' % (str(datetime.now() - startTime))
     return transl_probs
 
   ##
@@ -233,6 +243,8 @@ class M1:
     # Build sorted vocab list.
     self.en_vocab = list(sorted(en_vocab))
     self.sp_vocab = list(sorted(sp_vocab))
+    self.en_vocab_len = len(self.en_vocab)
+    self.sp_vocab_len = len(self.sp_vocab)
 
     ##
     # Build dict for each vocabulary in which keys are words and their
@@ -241,7 +253,7 @@ class M1:
     for i in range(0, len(self.en_vocab)):
       word = self.en_vocab[i]
       self.en_vocab_indices[word] = i
-    for i in range(0, len(self.sp_vocab)):
+    for i in range(0, self.sp_vocab_len):
       word = self.sp_vocab[i]
       self.sp_vocab_indices[word] = i
   
@@ -258,7 +270,7 @@ def print_best_translations(transl_probs, sp_vocab, en_vocab):
     row = transl_probs[sp_row]
     max_prob = max(row)
     i_of_max = row.index(max_prob)
-    print '%s : %s    %f' % (sp_vocab[sp_row], en_vocab[i_of_max], max_prob)
+    #print '%s : %s    %f' % (sp_vocab[sp_row], en_vocab[i_of_max], max_prob)
 
 
 def get_word_indices(sentence, vocab):
@@ -305,5 +317,13 @@ def get_lines_of_file(fileName):
   return lines
 
 
+def main():
+  m = M1()
+
+
+if __name__ == "__main__":
+  startTime = datetime.now()
+  main()
+  print 'Time elapsed:   %s' % (str(datetime.now() - startTime))
 
   
