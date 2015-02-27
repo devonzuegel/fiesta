@@ -13,8 +13,8 @@ import numpy as np
 
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
-FILENAME = 'europarl-v7.es-en'
-# FILENAME = 'test2'
+# FILENAME = 'europarl-v7.es-en'
+FILENAME = 'test2'
 N_ITERATIONS = 2
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
@@ -136,7 +136,7 @@ class M1:
       
       total_s_reshaped = np.asarray(total_s).reshape(len(total_s), 1)
       transl_probs = counts / (total_s_reshaped * 1.0)
-      
+      print transl_probs
       print 'Time elapsed (AFTER SECOND LOOP):   %s' % (str(datetime.now() - startTime))
     return transl_probs
 
