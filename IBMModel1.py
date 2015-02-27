@@ -14,7 +14,7 @@ from bisect import bisect_left
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
 FILENAME = 'europarl-v7.es-en'
-FILENAME = 'test2'
+# FILENAME = 'test2'
 N_ITERATIONS = 10
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
