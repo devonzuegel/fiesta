@@ -19,23 +19,23 @@ Further information on p. 880 of the textbook.
 ```
 # Values for english within spanish word must sum to 1.0
 # TODO: might be the other way aroundd!!!
-  # {
-  #   'Yo': {
-  #     'I': .3
-  #     'have': .4
-  #     'dog': .3
-  #   }
-  #   'tengo': {
-  #     'I': .3
-  #     'have': .4
-  #     'dog': .3
-  #   }
-  #   'perro': {
-  #     'I': .3
-  #     'have': .4
-  #     'dog': .3
-  #   }
-  # }
+{
+  'Yo': {
+    'I': .3
+    'have': .4
+    'dog': .3
+  }
+  'tengo': {
+    'I': .3
+    'have': .4
+    'dog': .3
+  }
+  'perro': {
+    'I': .3
+    'have': .4
+    'dog': .3
+  }
+}
 ```
 
 ---
@@ -52,20 +52,23 @@ Further information on p. 880 of the textbook.
 - [x] optimize algorithm ( @luttigdev )
   - [ ] just reset at each iteration or completely recreate? (applies to multiple data structures)
 - [x] lowercase? DOESN'T MATTER
-
-- [ ] **implement evaluation/run-through for `dev/` folder through Bleu (Devon, Thursday afternoon)**
-- [ ] bigrams ??
-    - translating 2 words
-    
+- [ ] add english language model (single-word probabilities) (Zoe, Thursday)
+- [ ] **implement evaluation/run-through for `dev/` folder through Bleu ASAP**
+- [ ] bigrams
+    - translating 2 words ??
 - [ ] decide new priorities once we get Bleu working
+- [ ] Viterbi + nltk (parts of speech tagging » reordering Sp-Eng verbs for exmaple)
+  - NOTE: can't tag single English words because not enough context
+- [ ] conjugations in Spanish indicate subject ("Tengo" == "Yo tengo") ... deal with this!
 
 ### Questions
 - [ ] logs
+- [x] COGNATES (not a good idea)
+
+## Misc
+- [ ] shouldn't remove commas from translation...
 - [ ] Shouldn't remove &quot; and similar thingies
 
-- [ ]  COGNATES
-- [ ] implement evaluation/run-through for `dev/` folder through Bleu (Devon, Wednesday night)
-- [ ] add spanish language model (Thursday)
 
 ### Report
 - [ ] all the things
@@ -122,6 +125,7 @@ Further information on p. 876 of the textbook.
 union » union
 uniòn » uniOn
 ```
+- conjugations in Spanish indicate subject ("Tengo" == "Yo tengo")
 
 ## Our strategy to improve the baseline IBM Model 1 system
 *Your strategy to improve the baseline IBM model 1 system*
