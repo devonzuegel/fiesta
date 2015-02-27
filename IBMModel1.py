@@ -49,6 +49,8 @@ class M1:
 
     self.build_vocab_indices()
 
+    self.build_bigrams(en_doc)
+
     self.transl_probs = self.train_transl_probs(sentence_pairs)
 
 
@@ -59,7 +61,11 @@ class M1:
   def build_vocab_indices(self):
     self.en_vocab_indices = {}
     self.sp_vocab_indices = {}
+    self.en_vocab_bigrams_indices = {}
 
+    for i in range(0, self.n_en_vocab_bigrams):
+      word = self.en_vocab_bigrams[i]
+      self.en_vocab_bigrams_indices[word] = i  
     for i in range(0, len(self.en_vocab)):
       word = self.en_vocab[i]
       self.en_vocab_indices[word] = i
@@ -68,7 +74,8 @@ class M1:
       self.sp_vocab_indices[word] = i
 
 
-  def top_english_word(self, sp_word):
+
+  def top_english_word(self, sp_word, bigram):
     if sp_word not in self.sp_vocab:
       return sp_word
 
@@ -79,6 +86,12 @@ class M1:
     for i in range(len(adjusted_probs)):
       #print self.get_unigram_probability(self.en_vocab[i])
       adjusted_probs[i] /= self.get_unigram_probability(self.en_vocab[i])
+
+      bigram_prob = self.get_bigram_probability(bigram, self.en_vocab[i])
+      if (bigram_prob != 1 and adjusted_probs[i] < 0.3):
+        adjusted_probs[i] = bigram_prob
+      #TODO play around with how to combine bigrams
+      #adjusted_probs[i] += ((0.5)*self.get_bigram_probability(bigram, self.en_vocab[i]))
       #print adjusted_probs[i]
     i_of_max = np.argmax(adjusted_probs)
     #return i_of_max
@@ -153,41 +166,87 @@ class M1:
     return transl_probs
 
 
-  def get_unigram_probability(self, sp_word):
-    return self.en_unigram_counts[sp_word] * (1.0) / self.total_num_words
+  def get_unigram_probability(self, en_word):
+    return self.en_unigram_counts[en_word] * (1.0) / self.total_num_words_en
+
+  def get_bigram_probability(self, bigram, word):
+    if word in self.en_vocab_indices and bigram in self.en_vocab_bigrams_indices:
+      word_index = self.en_vocab_indices[word]
+      bigram_index = self.en_vocab_bigrams_indices[bigram]
+      #Calculate actual bigram probability by dividing the count of those
+      # three words appearing in sequence by the number of times word appears at all
+      #print bigram + ':' + word
+      return self.en_bigram_counts[bigram_index][word_index]*1.0 / self.en_unigram_counts[word]
+    else:
+      return 1
 
   ##
   # Takes in an array of sentences of sp and en words
   # returns tuples in the form of (sp sentence, en sentence)
+  
   def deconstuct_sentences(self, sp_doc, en_doc):
     print '\n=== Deconstructing sentences & building vocabs...'
     ##
     # Iterate through all English & Spanish sentences & add each word
     # to the respective vocabularies.
-    en_vocab, sp_vocab = set(), set()
+    en_vocab, sp_vocab, en_vocab_bigrams = set(), set(), set()
     self.en_unigram_counts = collections.defaultdict(lambda:0) 
-    self.total_num_words = 0 
-
+    self.total_num_words_en = 0 
+    
 
     for en_sentence in en_doc:
-      for en_word in en_sentence.split(' '):
+       en_sentence_split = en_sentence.split(' ')
+       for en_word_index in range(len(en_sentence_split)):
+        en_word = en_sentence_split[en_word_index]
+        if en_word_index > 1:
+          en_vocab_bigrams.add(en_sentence_split[en_word_index - 2] + " " + en_sentence_split[en_word_index - 1])
         self.en_unigram_counts[en_word] += 1
         en_vocab.add(en_word)
-        self.total_num_words += 1
+        self.total_num_words_en += 1
+
     for sp_sentence in sp_doc:
       for sp_word in sp_sentence.split(' '):
         sp_vocab.add(sp_word)
-        
+
     # Build sorted vocab list.
     self.en_vocab, self.sp_vocab = list(sorted(en_vocab)), list(sorted(sp_vocab))
+    self.en_vocab_bigrams = list(en_vocab_bigrams)
 
     # Save size of the Spanish & English vocabs in self attribute.
-    self.n_en_words, self.n_sp_words = len(self.en_vocab), len(self.sp_vocab)
+    self.n_en_words, self.n_sp_words  = len(self.en_vocab), len(self.sp_vocab)
+    self.n_en_vocab_bigrams = len(self.en_vocab_bigrams)
 
     # Build list of sentence pair tuples.
     return [(sp_doc[i], en_doc[i]) for i, sp_sentence in enumerate(sp_doc)]
 
 
+  def build_bigrams(self, en_doc):
+    # Will hold a matrix where the rows are "word1 word 2" 
+    # and the cols are the possible words that follows
+    # each entry is a count of the number of times "word1 word2 word3"
+    #
+    #           a   dog  
+    #         -------------
+    # I have |  3     1
+    # have a |  0     3
+    # a dog  |  0     0
+    #
+    #Initialize to zero for all
+    self.en_bigram_counts = np.zeros((self.n_en_vocab_bigrams, self.n_en_words))
+
+    for en_sentence in en_doc:
+       en_sentence_split = en_sentence.split(' ')
+       for en_word_index in range(len(en_sentence_split)):
+        en_word = en_sentence_split[en_word_index]
+        if en_word_index > 1:
+          bigram = en_sentence_split[en_word_index - 2] + " " + en_sentence_split[en_word_index - 1]
+          #print bigram
+          en_word_index = self.en_vocab_indices[en_word]
+          bigram_index = self.en_vocab_bigrams_indices[bigram]
+          #Add one to the count in the bigram counts matrix 
+          self.en_bigram_counts[bigram_index][en_word_index] += 1
+
+    print self.en_bigram_counts
 
 def get_word_indices(sentence, vocab_indices):
   return [vocab_indices[word] for i, word in enumerate(sentence)]
