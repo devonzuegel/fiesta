@@ -66,6 +66,7 @@ Further information on p. 880 of the textbook.
 ## Misc
 - [ ] shouldn't remove commas from translation...
 - [ ] Shouldn't remove &quot; and similar thingies
+- [ ] Check out random \x word (devon)
 
 
 ### Report
