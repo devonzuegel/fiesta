@@ -272,8 +272,7 @@ def get_word_index(word, vocab):
   return binary_search(vocab, word)
 
 ##
-# Code for reading a file.  you probably don't want to modify anything here, 
-# unless you don't like the way we segment files.
+# Code for reading and tokenizing a file.
 def get_lines_of_file(fileName):
   lines = []
   with open(fileName,'r') as f: 

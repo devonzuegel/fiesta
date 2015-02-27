@@ -34,61 +34,81 @@ UTF_SPECIAL_CHARS = {
   '&quot;' : ''
 }
 PATH_TO_TRAIN = './es-en/train/'
-FILENAME = 'test1'
+FILENAME = 'test2'
 
 def main():
   m1 = M1()
 
+  # Get sp_sentences to translate out of file (no tokenizing)
   sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
 
   for sp_sentence in sp_sentences:
+    print '\n'
+    print 'Spanish:   %s' % sp_sentence.replace('\n', '')
+
     sp_words = sp_sentence.split()
     en_translation = ''
 
-    print '\n================================\n'
     for sp_word in sp_words:
-      en_translation += '%s ' % m1.top_english_word(sp_word)
-    
-    print '\n=== Spanish sentence: ==='
-    print ' '.join(sp_words)
-    
-    print '\n=== English translation: ==='
-    print en_translation
+      sp_word_stemmed = tokenize_sp_stemmed(sp_word)
 
+      if sp_word_stemmed not in m1.sp_vocab:  # Deals with punctuation, etc. 
+        en_translation += '%s ' % sp_word     # TODO: this part is super bad
+      else:
+        en_translation += '%s ' % m1.top_english_word(sp_word_stemmed)
+        # print '%s  :  %s' % (sp_word, sp_word_stemmed)
 
-##
-# Code for reading a file.  you probably don't want to modify anything here, 
-# unless you don't like the way we segment files.
+    # For each sp_word in sp_sentence_tokenized
+      # Get the best translation for that specific word
+      # Add it sentence (later put in bag for order, but for now keep same order)
+    # Print the resulting English sentence
+
+  # for sp_sentence in sp_sentences:
+  #   sp_words = sp_sentence.split()
+  #   en_translation = ''
+
+  #   print '\n================================\n'
+  #   for sp_word in sp_words:
+  #     sp_word_tokenized =
+  #     en_translation += '%s ' % m1.top_english_word(sp_word)
+    
+  #   print '\n=== Spanish sentence: ==='
+  #   print ' '.join(sp_words)
+    
+    print 'English:   %s' % en_translation
+
 def get_lines_of_file(fileName):
-  lines = []
-  with open(fileName,'r') as f: 
-    for line in f:
-      ##
-      # First we lowercase the line in order to treat capitalized
-      # and non-capitalized instances of a single word the same.
-      ##
-      # Then, repr() forces the output into a string literal UTF-8
-      # format, with characters such as '\xc3\x8d' representing
-      # special characters not found in typical ASCII.
-      line = repr(line.lower())
-      
-      ##
-      # Replace all instances of UTF-8 character codes with
-      # uppercase letters of the nearest ASCII equivalent. For
-      # instance, 'á' becomes '\\xc3\\xa1' becomes 'A'. The
-      # purpose of making these special characters uppercase is
-      # to differentiate them from the rest of the non-special
-      # characters, which are all lowercase.
-      for utf8_code, replacement_char in UTF_SPECIAL_CHARS.items():
-        line = line.replace(utf8_code, replacement_char)
-      
-      # Remove any non-whitespace, non-alphabetic characters.
-      line = re.sub(r'[^A-z ]', '', line)
-      
-      # Substitute multiple whitespace with single whitespace, then
-      # append the cleaned line to the list.
-      lines.append(' '.join(line.split()))
-  return lines
+  with open(fileName,'r') as f:
+    return [line for line in f]
+
+
+def tokenize_sp_stemmed(sp_sentence):
+  ##
+    # First we lowercase the line in order to treat capitalized
+    # and non-capitalized instances of a single word the same.
+  ##
+    # Then, repr() forces the output into a string literal UTF-8
+    # format, with characters such as '\xc3\x8d' representing
+    # special characters not found in typical ASCII.
+  line = repr(sp_sentence.lower())
+  
+  ##
+    # Replace all instances of UTF-8 character codes with
+    # uppercase letters of the nearest ASCII equivalent. For
+    # instance, 'á' becomes '\\xc3\\xa1' becomes 'A'. The
+    # purpose of making these special characters uppercase is
+    # to differentiate them from the rest of the non-special
+    # characters, which are all lowercase.
+  for utf8_code, replacement_char in UTF_SPECIAL_CHARS.items():
+    line = line.replace(utf8_code, replacement_char)
+  
+  # Remove any non-whitespace, non-alphabetic characters.
+  line = re.sub(r'[^A-z ]', '', line)
+
+  ##
+    # Substitute multiple whitespace with single whitespace, then
+    # append the cleaned line to the list.
+  return ' '.join(line.split())
 
 
 if __name__ == "__main__":
