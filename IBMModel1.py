@@ -146,9 +146,9 @@ class M1:
 
   # Create the counts table.
   def init_counts(self):
+    n_sp_words = self.sp_vocab_len
     n_en_words = self.en_vocab_len
-    n_sp_words = self.en_vocab_len
-    return np.zeros((n_en_words, n_sp_words))
+    return np.zeros((n_sp_words, n_en_words))
 
   def train_transl_probs(self, sentence_pairs):
 
