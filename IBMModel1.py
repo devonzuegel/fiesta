@@ -14,7 +14,7 @@ import numpy as np
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
 FILENAME = 'europarl-v7.es-en'
-FILENAME = 'test2'
+# FILENAME = 'test2'
 N_ITERATIONS = 2
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
@@ -112,32 +112,31 @@ class M1:
         en_sentence = pair[1].split()
 
         ##
-        # TODO: consider calculating the vocab indices for the entire
-        # sentences here so there aren't `2ij` lookups.
+        # Calculating the vocab indices for each word in both sentences
+        # sentences here so there aren't `2ij` lookups within the loops.
+        sp_word_indices = get_word_indices(sp_sentence, self.sp_vocab_indices)
+        en_word_indices = get_word_indices(en_sentence, self.en_vocab_indices)
 
         # Spanish words are the rows, English words are the columns
-        for en_word in en_sentence:    # Each word in the English sentence
-          for sp_word in sp_sentence:  # Each word in the Spanish sentence
-            sp_row = self.sp_vocab_indices[sp_word]
-            en_col = self.en_vocab_indices[en_word]
+        for e in range(len(en_sentence)):    # Each word in the English sentence
+          en_col = en_word_indices[e]
+          for s in range(len(sp_sentence)):  # Each word in the Spanish sentence
+            sp_row = sp_word_indices[s]
             total_e[en_col] += transl_probs[sp_row][en_col]
         
-        for en_word in en_sentence:    # Each word in the English sentence
-          for sp_word in sp_sentence:  # Each word in the Spanish sentence
-            sp_row = self.sp_vocab_indices[sp_word]
-            en_col = self.en_vocab_indices[en_word]
-
+        for e in range(len(en_sentence)):    # Each word in the English sentence
+          en_col = en_word_indices[e]
+          for s in range(len(sp_sentence)):  # Each word in the Spanish sentence
+            sp_row = sp_word_indices[s]
             additional_prob = transl_probs[sp_row][en_col] / (1.0*total_e[en_col])
             counts[sp_row][en_col] += additional_prob
             total_s[sp_row] += additional_prob
 
       print 'Time elapsed (BEFORE SECOND LOOP):   %s' % (str(datetime.now() - startTime))
-      for sp_i in range(self.n_sp_words):
-        if total_s[sp_i]:
-          for en_i in range(self.n_en_words):
-            transl_probs[sp_i][en_i] = counts[sp_i][en_i] / (total_s[sp_i] * 1.0)
-            # transl_probs[sp_i][en_i] = 0 if (total_s_at_sp_i == 0) else counts[sp_i][en_i] / (total_s_at_sp_i * 1.0)
-
+      
+      total_s_reshaped = np.asarray(total_s).reshape(len(total_s), 1)
+      transl_probs = counts / (total_s_reshaped * 1.0)
+      
       print 'Time elapsed (AFTER SECOND LOOP):   %s' % (str(datetime.now() - startTime))
     return transl_probs
 
