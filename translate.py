@@ -35,16 +35,18 @@ UTF_SPECIAL_CHARS = {
 }
 PATH_TO_TRAIN = './es-en/train/'
 FILENAME = 'test2'
+SPANISH_PUNCTUATION = set(['¿', '¡'])
 
 def main():
   m1 = M1()
 
   # Get sp_sentences to translate out of file (no tokenizing)
   sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
+  goal_transln = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
 
-  for sp_sentence in sp_sentences:
+  for i, sp_sentence in enumerate(sp_sentences):
     print '\n'
-    print 'Spanish:   %s' % sp_sentence.replace('\n', '')
+    print 'Spanish:  %s' % sp_sentence.replace('\n', '')
 
     sp_words = sp_sentence.split()
     en_translation = ''
@@ -52,8 +54,10 @@ def main():
     for sp_word in sp_words:
       sp_word_stemmed = tokenize_sp_stemmed(sp_word)
 
-      if sp_word_stemmed not in m1.sp_vocab:  # Deals with punctuation, etc. 
+      # Deals with punctuation, etc. 
+      if sp_word_stemmed not in m1.sp_vocab and sp_word not in SPANISH_PUNCTUATION:
         en_translation += '%s ' % sp_word     # TODO: this part is super bad
+      # Typical words
       else:
         en_translation += '%s ' % m1.top_english_word(sp_word_stemmed)
         # print '%s  :  %s' % (sp_word, sp_word_stemmed)
@@ -75,7 +79,8 @@ def main():
   #   print '\n=== Spanish sentence: ==='
   #   print ' '.join(sp_words)
     
-    print 'English:   %s' % en_translation
+    print 'English:  %s' % en_translation
+    print '   Goal:  %s' % goal_transln[i]
 
 def get_lines_of_file(fileName):
   with open(fileName,'r') as f:
