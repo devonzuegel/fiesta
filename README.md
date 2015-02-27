@@ -50,12 +50,10 @@ Further information on p. 880 of the textbook.
 - [x] multiple iterations
 - [x] self.sp_word_indices dictionary instead of binary search
 - [x] optimize algorithm ( @luttigdev )
-  - [ ] just reset at each iteration or completely recreate? (applies to multiple data structures)
 - [x] lowercase? DOESN'T MATTER
-- [ ] add english language model (single-word probabilities) (Zoe, Thursday)
-- [ ] **implement evaluation/run-through for `dev/` folder through Bleu ASAP**
-- [ ] bigrams
-    - translating 2 words ??
+- [x] add english language model (single-word probabilities) (Zoe, Thursday)
+- [x] **implement evaluation/run-through for `dev/` folder through Bleu ASAP**
+- [ ] bigrams ( @luttigdev, Zoe)
 - [ ] decide new priorities once we get Bleu working
 - [ ] Viterbi + nltk (parts of speech tagging » reordering Sp-Eng verbs for exmaple)
   - NOTE: can't tag single English words because not enough context
