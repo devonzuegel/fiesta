@@ -111,9 +111,11 @@ class M1:
     # likely to be the correct translation.
   def init_transl_probs(self):
 
-    
-    ###### uniform_prob = 1.0 / self.en_vocab_len
-    ###### transl_probs = np.ones((self.sp_vocab_len, self.en_vocab_len)) * uniform_prob
+
+    # uniform_prob = 1.0 / self.en_vocab_len
+    # num_en_words = self.en_vocab_len
+    # num_sp_words = self.en_vocab_len
+    # transl_probs = np.ones((num_sp_words, num_en_words)) * uniform_prob
     
 
     ##
@@ -144,7 +146,9 @@ class M1:
 
   # Create the counts table.
   def init_counts(self):
-    return np.zeros((self.sp_vocab_len, self.en_vocab_len))
+    n_en_words = self.en_vocab_len
+    n_sp_words = self.en_vocab_len
+    return np.zeros((n_en_words, n_sp_words))
 
   def train_transl_probs(self, sentence_pairs):
 
