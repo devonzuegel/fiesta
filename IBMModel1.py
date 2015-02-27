@@ -38,12 +38,6 @@ UTF_SPECIAL_CHARS = {
   '&quot;' : ''
 }
 
-
-def binary_search(to_search, val, lo=0, hi=None):   # can't use a to specify default for hi
-    hi = hi or len(to_search)              # hi defaults to len(a)   
-    pos = bisect_left(to_search, val, lo, hi)   # find insertion position
-    return pos if pos != hi and to_search[pos] == val else -1 # don't walk off the end
-
 ##
   # initialize transl_prob(e|f) uniformly
   # do until convergence
