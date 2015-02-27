@@ -108,8 +108,7 @@ class M1:
       print 'Time elapsed (BEFORE FIRST LOOP):   %s' % (str(datetime.now() - startTime))
       for pair in sentence_pairs:
         total_e = [0] * self.n_sp_words
-        sp_sentence = pair[0].split()
-        en_sentence = pair[1].split()
+        sp_sentence, en_sentence = pair[0].split(), pair[1].split()
 
         ##
         # Calculating the vocab indices for each word in both sentences
@@ -158,6 +157,7 @@ class M1:
         
     # Build sorted vocab list.
     self.en_vocab, self.sp_vocab = list(sorted(en_vocab)), list(sorted(sp_vocab))
+
     # Save size of the Spanish & English vocabs in self attribute.
     self.n_en_words, self.n_sp_words = len(self.en_vocab), len(self.sp_vocab)
 
