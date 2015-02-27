@@ -62,10 +62,6 @@ class M1:
       word = self.sp_vocab[i]
       self.sp_vocab_indices[word] = i
 
-
-    print len(self.sp_vocab)
-    print len(self.sp_vocab)
-
     self.transl_probs = self.train_transl_probs(sentence_pairs)
 
   def top_english_word(self, sp_word):
