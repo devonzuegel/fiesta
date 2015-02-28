@@ -15,7 +15,7 @@ PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
 #FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
-N_ITERATIONS = 20
+N_ITERATIONS = 10
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
   '\\xc2\\xbf' : '',
@@ -88,8 +88,8 @@ class M1:
       adjusted_probs[i] /= self.get_unigram_probability(self.en_vocab[i])
 
       bigram_prob = self.get_bigram_probability(bigram, self.en_vocab[i])
-      if (bigram_prob != 1 and adjusted_probs[i] < 0.3):
-        adjusted_probs[i] = bigram_prob
+      # if (bigram_prob != 1 and adjusted_probs[i] < 0.3):
+      #   adjusted_probs[i] = bigram_prob
       #TODO play around with how to combine bigrams
       #adjusted_probs[i] += ((0.5)*self.get_bigram_probability(bigram, self.en_vocab[i]))
       #print adjusted_probs[i]
@@ -175,10 +175,12 @@ class M1:
       bigram_index = self.en_vocab_bigrams_indices[bigram]
       #Calculate actual bigram probability by dividing the count of those
       # three words appearing in sequence by the number of times word appears at all
-      #print bigram + ':' + word
-      return self.en_bigram_counts[bigram_index][word_index]*1.0 / self.en_unigram_counts[word]
+      bigram_prob = self.en_bigram_counts[bigram_index][word_index]*1.0 / self.en_unigram_counts[word]
+      #if bigram_prob > 0.0:
+        #print bigram + ':' + word + ':' + str(bigram_prob)
+      return bigram_prob
     else:
-      return 1
+      return 0
 
   ##
   # Takes in an array of sentences of sp and en words
@@ -227,9 +229,9 @@ class M1:
     #
     #           a   dog  
     #         -------------
-    # I have |  3     1
-    # have a |  0     3
-    # a dog  |  0     0
+    #  have  |  3     1
+    #  a     |  0     3
+    # dog    |  0     0
     #
     #Initialize to zero for all
     self.en_bigram_counts = np.zeros((self.n_en_vocab_bigrams, self.n_en_words))
