@@ -13,7 +13,7 @@ import numpy as np
 
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
-#FILENAME = 'europarl-v7.es-en'
+# FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
 N_ITERATIONS = 20
 UTF_SPECIAL_CHARS = {
@@ -37,6 +37,8 @@ UTF_SPECIAL_CHARS = {
   '\\n' : '',
   '&quot;' : ''
 }
+CACHE_FILE = 'transl_probs_cache'
+USE_CACHE = True
 
 class M1:
 
@@ -49,7 +51,13 @@ class M1:
 
     self.build_vocab_indices()
 
-    self.transl_probs = self.train_transl_probs(sentence_pairs)
+    if USE_CACHE and os.path.exists(CACHE_FILE):
+      with open(CACHE_FILE, 'rb') as f:
+        self.transl_probs = np.loadtxt(CACHE_FILE)
+    else:
+      self.transl_probs = self.train_transl_probs(sentence_pairs)
+      with open(CACHE_FILE, 'w') as f:
+        np.savetxt(CACHE_FILE, self.transl_probs)
 
 
   ##
