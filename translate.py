@@ -77,24 +77,24 @@ def main():
     # Use bigram probabilities to rearrange words
     # Find all possible rearrangement of words in sentence 
     num_words_in_trans_sentence = len(en_translation.split())
-    max_bigram_score = 0
-    best_sentence  = en_translation.split()
-    possible_arrangements = rearrange_sentence(best_sentence)
-    print len(list(possible_arrangements))
-    for sentence in possible_arrangements:
-      #print sentence
-      bigram_score = 0.0
-      for i in range(num_words_in_trans_sentence):
-        if i >= 2:
-          bigram_e = sentence[i-1]
-          temp = m1.get_bigram_probability(bigram_e, sentence[i])
-          #print temp
-          bigram_score += temp
-      if bigram_score > max_bigram_score:
-        max_bigram_score = bigram_score
-        best_sentence = sentence
+    if num_words_in_trans_sentence < 10:
+      max_bigram_score = 0
+      best_sentence  = en_translation.split()
+      possible_arrangements = rearrange_sentence(best_sentence)
+      for sentence in possible_arrangements:
+        #print sentence
+        bigram_score = 0.0
+        for i in range(num_words_in_trans_sentence):
+          if i >= 2:
+            bigram_e = sentence[i-1]
+            temp = m1.get_bigram_probability(bigram_e, sentence[i])
+            #print temp
+            bigram_score += temp
+        if bigram_score > max_bigram_score:
+          max_bigram_score = bigram_score
+          best_sentence = sentence
 
-    en_translation = ' '.join(best_sentence)
+      en_translation = ' '.join(best_sentence)
 
 
     file_translated.write(en_translation + '\n')
