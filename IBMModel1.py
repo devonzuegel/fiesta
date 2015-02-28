@@ -37,6 +37,9 @@ UTF_SPECIAL_CHARS = {
   '\\n' : '',
   '&quot;' : ''
 }
+USE_CACHE = True
+CACHE_FILE = 'translated_file'
+PRINT_MSGS = not True
 
 class M1:
 
@@ -49,7 +52,15 @@ class M1:
 
     self.build_vocab_indices()
 
-    self.transl_probs = self.train_transl_probs(sentence_pairs)
+    if USE_CACHE and os.path.exists(CACHE_FILE):
+      print 'Loading transl_probs from cache...'
+      with open(CACHE_FILE, 'rb') as f:
+        self.transl_probs = np.loadtxt(CACHE_FILE)
+    else:
+      print 'Building transl_probs...'
+      self.transl_probs = self.train_transl_probs(sentence_pairs)
+      with open(CACHE_FILE, 'w') as f:
+        np.savetxt(CACHE_FILE, self.transl_probs)
 
 
   ##
@@ -110,16 +121,16 @@ class M1:
   def train_transl_probs(self, sentence_pairs):
 
     # Initialize counts and totals to be used in main loop.
-    print '\n=== Initializing transl_probs & counts...'
+    if PRINT_MSGS: print '\n=== Initializing transl_probs & counts...'
     transl_probs = self.init_transl_probs()
     startTime = datetime.now()
     for x in xrange(0, N_ITERATIONS):
-      print '\n=== %d Training translation probabilities...' % (x + 1)
-      print 'Time elapsed (BEGIN):   %s' % (str(datetime.now() - startTime))
+      if PRINT_MSGS: print '\n=== %d Training translation probabilities...' % (x + 1)
+      if PRINT_MSGS: print 'Time elapsed (BEGIN):   %s' % (str(datetime.now() - startTime))
       counts = self.init_counts()
       total_s = [0] * self.n_sp_words
 
-      print 'Time elapsed (BEFORE FIRST LOOP):   %s' % (str(datetime.now() - startTime))
+      if PRINT_MSGS: print 'Time elapsed (BEFORE FIRST LOOP):   %s' % (str(datetime.now() - startTime))
       for pair in sentence_pairs:
         total_e = [0] * self.n_sp_words
         sp_sentence, en_sentence = pair[0].split(), pair[1].split()
@@ -145,11 +156,11 @@ class M1:
             counts[sp_row][en_col] += additional_prob
             total_s[sp_row] += additional_prob
 
-      print 'Time elapsed (BEFORE SECOND LOOP):   %s' % (str(datetime.now() - startTime))
+      if PRINT_MSGS: print 'Time elapsed (BEFORE SECOND LOOP):   %s' % (str(datetime.now() - startTime))
       
       total_s_reshaped = np.asarray(total_s).reshape(len(total_s), 1)
       transl_probs = counts / (total_s_reshaped * 1.0)
-      print 'Time elapsed (AFTER SECOND LOOP):   %s' % (str(datetime.now() - startTime))
+      if PRINT_MSGS: print 'Time elapsed (AFTER SECOND LOOP):   %s' % (str(datetime.now() - startTime))
     return transl_probs
 
 
@@ -160,7 +171,7 @@ class M1:
   # Takes in an array of sentences of sp and en words
   # returns tuples in the form of (sp sentence, en sentence)
   def deconstuct_sentences(self, sp_doc, en_doc):
-    print '\n=== Deconstructing sentences & building vocabs...'
+    if PRINT_MSGS: print '\n=== Deconstructing sentences & building vocabs...'
     ##
     # Iterate through all English & Spanish sentences & add each word
     # to the respective vocabularies.
@@ -235,6 +246,6 @@ def main():
 if __name__ == "__main__":
   startTime = datetime.now()
   main()
-  print 'Time elapsed:   %s' % (str(datetime.now() - startTime))
+  if PRINT_MSGS: print 'Time elapsed:   %s' % (str(datetime.now() - startTime))
 
   
