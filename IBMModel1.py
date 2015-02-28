@@ -170,7 +170,7 @@ class M1:
       # three words appearing in sequence by the number of times word appears at all
       bigram_prob = self.en_bigram_counts[bigram_index][word_index]*1.0 / self.en_unigram_counts[word]
       if bigram_prob > 0.0:
-        #print bigram + ':' + word + ':' + str(bigram_prob)
+        print bigram + ':' + word + ':' + str(bigram_prob)
         return bigram_prob
     return 0.0
 
