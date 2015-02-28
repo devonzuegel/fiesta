@@ -53,7 +53,6 @@ def main():
   with open('%s_translated' % FILENAME, 'w') as f:
     for i, sp_sentence in enumerate(sp_sentences):
       if PRINT_MSGS: print '\nSpanish:  %s' % sp_sentence.replace('\n', '')
-      print nltk.word_tokenize(sp_sentence.decode("utf-8"))
       translate_sentence(sp_sentence.split(), goal_transls[i], f, m1)
 
 
