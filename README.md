@@ -70,11 +70,11 @@ Further information on p. 880 of the textbook.
 
 
 ### Report To Dos
-- [ ] A comment on the language F that you chose. You should make a brief statement of particular challenges in translating your choice of F language to English (relative to other possible choices for F), and key insights about the language that you made use of in your strategies to improve your baseline MT system.
-- [] Your strategy to improve the baseline IBM model 1 system
-- [ ] Your error analysis on the test set, including specific reference to what your code does and ideas for how further work might fix your remaining errors.
-- [ ] The output of Google Translate.
-- [ ] A comparative analysis commenting on your system's performance compared to Google Translate's. Show where the systems agree, what your system does better than Google Translate, and what Google Translate does better than your system.
+- [ ] A comment on the language F that you chose. You should make a brief statement of particular challenges in translating your choice of F language to English (relative to other possible choices for F), and key insights about the language that you made use of in your strategies to improve your baseline MT system. (John)
+- [ ] Your strategy to improve the baseline IBM model 1 system (John)
+- [ ] Your error analysis on the test set, including specific reference to what your code does and ideas for how further work might fix your remaining errors. (Devon / John)
+- [ ] The output of Google Translate. (Zoe)
+- [ ] A comparative analysis commenting on your system's performance compared to Google Translate's. Show where the systems agree, what your system does better than Google Translate, and what Google Translate does better than your system. (Zoe)
 
 
 
