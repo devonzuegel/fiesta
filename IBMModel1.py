@@ -59,14 +59,12 @@ class M1:
       with open(CACHE_FILE, 'w') as f:
         np.savetxt(CACHE_FILE, self.transl_probs)
 
-
   ##
-  # Build dict for each vocabulary in which keys are words and their
-  # values are their respective indices. This will allow lookup of
-  # words from row/column in the `transl_probs` & `counts` tables.
+    # Build dict for each vocabulary in which keys are words and their
+    # values are their respective indices. This will allow lookup of
+    # words from row/column in the `transl_probs` & `counts` tables.
   def build_vocab_indices(self):
-    self.en_vocab_indices = {}
-    self.sp_vocab_indices = {}
+    self.en_vocab_indices, self.sp_vocab_indices = {}, {}
 
     for i in range(0, len(self.en_vocab)):
       word = self.en_vocab[i]
@@ -74,7 +72,6 @@ class M1:
     for i in range(0, self.n_sp_words):
       word = self.sp_vocab[i]
       self.sp_vocab_indices[word] = i
-
 
   def top_english_word(self, sp_word):
     if sp_word not in self.sp_vocab:
@@ -98,18 +95,16 @@ class M1:
     #print self.en_vocab[i_of_max]
     return self.en_vocab[i_of_max]  # Top English translation for sp_word
 
-
   ##
-  # Initialize transl_probs uniformly. It's table from spanish words to
-  # english words (list of lists) to probability of that english word being
-  # the correct translation. Every translation probability is
-  # initialized to (1/# english words) since every word is equally
-  # likely to be the correct translation.
+    # Initialize transl_probs uniformly. It's table from spanish words to
+    # english words (list of lists) to probability of that english word being
+    # the correct translation. Every translation probability is
+    # initialized to (1/# english words) since every word is equally
+    # likely to be the correct translation.
   def init_transl_probs(self):
     # Create matrix uniformly filled with `1*uniform_prob`
     uniform_prob = 1.0 / self.n_en_words
     return np.ones((self.n_sp_words, self.n_en_words)) * uniform_prob
-
 
   # Create the counts table.
   def init_counts(self):
@@ -165,8 +160,8 @@ class M1:
     return self.en_unigram_counts[sp_word] * (1.0) / self.total_num_words
 
   ##
-  # Takes in an array of sentences of sp and en words
-  # returns tuples in the form of (sp sentence, en sentence)
+    # Takes in an array of sentences of sp and en words
+    # returns tuples in the form of (sp sentence, en sentence)
   def deconstuct_sentences(self, sp_doc, en_doc):
     print '\n=== Deconstructing sentences & building vocabs...'
     ##
