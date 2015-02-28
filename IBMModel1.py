@@ -15,7 +15,7 @@ PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
 #FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
-N_ITERATIONS = 10
+N_ITERATIONS = 15
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
   '\\xc2\\xbf' : '',
@@ -88,19 +88,12 @@ class M1:
       adjusted_probs[i] /= self.get_unigram_probability(self.en_vocab[i])
 
       bigram_prob = self.get_bigram_probability(bigram, self.en_vocab[i])
-      # if (bigram_prob != 1 and adjusted_probs[i] < 0.3):
-      #   adjusted_probs[i] = bigram_prob
-      #TODO play around with how to combine bigrams
-      adjusted_probs[i] /= self.get_bigram_probability(bigram, self.en_vocab[i]))
+      # #TODO play around with how to combine bigrams
+      # if bigram_prob != 0:
+      #   adjusted_probs[i] /= bigram_prob
       #print adjusted_probs[i]
     i_of_max = np.argmax(adjusted_probs)
-    #return i_of_max
-    # max_prob = 
-    # max_prob_index = 
-    # for index in range(0, len(self.transl_probs[sp_row])):
-    #   new_prob = self.transl_probs[sp_row][index] * get_unigram_probability[]
-    #print "TEST"
-    #print self.en_vocab[i_of_max]
+
     return self.en_vocab[i_of_max]  # Top English translation for sp_word
 
 
@@ -176,8 +169,8 @@ class M1:
       #Calculate actual bigram probability by dividing the count of those
       # three words appearing in sequence by the number of times word appears at all
       bigram_prob = self.en_bigram_counts[bigram_index][word_index]*1.0 / self.en_unigram_counts[word]
-      #if bigram_prob > 0.0:
-        #print bigram + ':' + word + ':' + str(bigram_prob)
+      if bigram_prob > 0.0:
+        print bigram + ':' + word + ':' + str(bigram_prob)
       return bigram_prob
     else:
       return 0
