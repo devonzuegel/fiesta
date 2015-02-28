@@ -91,7 +91,7 @@ class M1:
       # if (bigram_prob != 1 and adjusted_probs[i] < 0.3):
       #   adjusted_probs[i] = bigram_prob
       #TODO play around with how to combine bigrams
-      #adjusted_probs[i] += ((0.5)*self.get_bigram_probability(bigram, self.en_vocab[i]))
+      adjusted_probs[i] /= self.get_bigram_probability(bigram, self.en_vocab[i]))
       #print adjusted_probs[i]
     i_of_max = np.argmax(adjusted_probs)
     #return i_of_max
@@ -200,8 +200,8 @@ class M1:
        en_sentence_split = en_sentence.split(' ')
        for en_word_index in range(len(en_sentence_split)):
         en_word = en_sentence_split[en_word_index]
-        if en_word_index > 1:
-          en_vocab_bigrams.add(en_sentence_split[en_word_index - 2] + " " + en_sentence_split[en_word_index - 1])
+        if en_word_index >= 1:
+          en_vocab_bigrams.add(en_sentence_split[en_word_index - 1])
         self.en_unigram_counts[en_word] += 1
         en_vocab.add(en_word)
         self.total_num_words_en += 1
@@ -223,9 +223,9 @@ class M1:
 
 
   def build_bigrams(self, en_doc):
-    # Will hold a matrix where the rows are "word1 word 2" 
+    # Will hold a matrix where the rows are "word_n-1" 
     # and the cols are the possible words that follows
-    # each entry is a count of the number of times "word1 word2 word3"
+    # each entry is a count of the number of times "word_n1 word_n2 word_n3"
     #
     #           a   dog  
     #         -------------
@@ -240,8 +240,8 @@ class M1:
        en_sentence_split = en_sentence.split(' ')
        for en_word_index in range(len(en_sentence_split)):
         en_word = en_sentence_split[en_word_index]
-        if en_word_index > 1:
-          bigram = en_sentence_split[en_word_index - 2] + " " + en_sentence_split[en_word_index - 1]
+        if en_word_index >= 1:
+          bigram = en_sentence_split[en_word_index - 1]
           #print bigram
           en_word_index = self.en_vocab_indices[en_word]
           bigram_index = self.en_vocab_bigrams_indices[bigram]
