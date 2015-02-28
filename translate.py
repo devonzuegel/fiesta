@@ -7,6 +7,7 @@ import math
 import collections
 import copy
 import re
+import itertools
 from datetime import datetime
 from bisect import bisect_left
 
@@ -70,6 +71,32 @@ def main():
       else:
         en_translation += '%s ' % m1.top_english_word(sp_word_stemmed, bigram)
 
+      if i > 2:
+        m1.get_bigram_probability(bigram,m1.top_english_word(sp_word_stemmed, bigram) )
+
+    #Use bigram probabilities to rearrange words
+    #Find all possible rearrangement of words in sentence 
+    num_words_in_trans_sentence = len(en_translation.split())
+    max_bigram_score = 0
+    best_sentence  = en_translation.split()
+    possible_arrangements = rearrange_sentence(best_sentence)
+    for sentence in possible_arrangements:
+      bigram_score = 0
+      for i in range(num_words_in_trans_sentence):
+        if i >= 2:
+          bigram_e = sentence[i-2] + ' ' + sentence[i-1]
+          bigram_score += m1.get_bigram_probability(bigram_e, sentence[i])
+      if bigram_score > max_bigram_score:
+        max_bigram_score = bigram_score
+        best_sentence = sentence
+
+    en_translation = ' '.join(best_sentence)
+    # for i1 in range(num_words_in_trans_sentence):
+    # 	for i2 in range(num_words_in_trans_sentence):
+    # 		if i1 != i2:
+
+    #loop through 
+
     file_translated.write(en_translation + '\n')
     print 'English:  %s' % en_translation
     print '   Goal:  %s' % goal_transln[i]
@@ -78,6 +105,9 @@ def main():
 def get_lines_of_file(fileName):
   with open(fileName,'r') as f:
     return [line for line in f]
+
+def rearrange_sentence(sentence):
+  return itertools.permutations(sentence)
 
 
 def tokenize_sp_stemmed(sp_sentence):
