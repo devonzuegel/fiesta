@@ -38,6 +38,8 @@ PATH_TO_TRAIN = './es-en/train/'
 FILENAME = 'test2'
 SPANISH_PUNCTUATION = set(['¿', '¡'])
 
+PRINT_MSGS = False
+
 def main():
   m1 = M1()
 
@@ -48,8 +50,8 @@ def main():
   file_translated = open(FILENAME + '_translanted', 'w')
 
   for i, sp_sentence in enumerate(sp_sentences):
-    print '\n'
-    print 'Spanish:  %s' % sp_sentence.replace('\n', '')
+    if PRINT_MSGS: print '\n'
+    if PRINT_MSGS: print 'Spanish:  %s' % sp_sentence.replace('\n', '')
 
     sp_words = sp_sentence.split()
     en_translation = ''
@@ -82,13 +84,13 @@ def main():
       best_sentence  = en_translation.split()
       possible_arrangements = rearrange_sentence(best_sentence)
       for sentence in possible_arrangements:
-        #print sentence
+        #if PRINT_MSGS: print sentence
         bigram_score = 0.0
         for i in range(num_words_in_trans_sentence):
           if i >= 2:
             bigram_e = sentence[i-1]
             temp = m1.get_bigram_probability(bigram_e, sentence[i])
-            #print temp
+            #if PRINT_MSGS: print temp
             bigram_score += temp
         if bigram_score > max_bigram_score:
           max_bigram_score = bigram_score
@@ -98,8 +100,8 @@ def main():
 
 
     file_translated.write(en_translation + '\n')
-    print 'English:  %s' % en_translation
-    print '   Goal:  %s' % goal_transln[i]
+    if PRINT_MSGS: print 'English:  %s' % en_translation
+    if PRINT_MSGS: print '   Goal:  %s' % goal_transln[i]
   file_translated.close()
 
 def get_lines_of_file(fileName):
@@ -142,6 +144,6 @@ def tokenize_sp_stemmed(sp_sentence):
 if __name__ == "__main__":
   startTime = datetime.now()
   main()
-  print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
+  if PRINT_MSGS: print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
 
   

@@ -15,7 +15,7 @@ PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
 #FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
-N_ITERATIONS = 15
+N_ITERATIONS = 20
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
   '\\xc2\\xbf' : '',
@@ -38,6 +38,9 @@ UTF_SPECIAL_CHARS = {
   '&quot;' : ''
 }
 
+USE_CACHE = True
+CACHE_FILE = 'transl_prob_cache'
+
 class M1:
 
   # IBM Model 1 initialization
@@ -51,7 +54,13 @@ class M1:
 
     self.build_bigrams(en_doc)
 
-    self.transl_probs = self.train_transl_probs(sentence_pairs)
+    if USE_CACHE and os.path.exists(CACHE_FILE):
+      with open(CACHE_FILE, 'rb') as f:
+        self.transl_probs = np.loadtxt(CACHE_FILE)
+    else:
+      self.transl_probs = self.train_transl_probs(sentence_pairs)
+      with open(CACHE_FILE, 'w') as f:
+        np.savetxt(CACHE_FILE, self.transl_probs)
 
 
   ##
