@@ -171,9 +171,9 @@ class M1:
       bigram_prob = self.en_bigram_counts[bigram_index][word_index]*1.0 / self.en_unigram_counts[word]
       if bigram_prob > 0.0:
         print bigram + ':' + word + ':' + str(bigram_prob)
-      return bigram_prob
-    else:
-      return 0
+        return bigram_prob
+      else:
+        return 0
 
   ##
   # Takes in an array of sentences of sp and en words
