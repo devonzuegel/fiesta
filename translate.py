@@ -11,6 +11,7 @@ from datetime import datetime
 from bisect import bisect_left
 import numpy as np
 from IBMModel1 import M1
+import nltk
 
 UTF_SPECIAL_CHARS = {
   '\\xc2\\xa1' : '',
@@ -52,6 +53,7 @@ def main():
   with open('%s_translated' % FILENAME, 'w') as f:
     for i, sp_sentence in enumerate(sp_sentences):
       if PRINT_MSGS: print '\nSpanish:  %s' % sp_sentence.replace('\n', '')
+      print nltk.word_tokenize(sp_sentence.decode("utf-8"))
       translate_sentence(sp_sentence.split(), goal_transls[i], f, m1)
 
 
@@ -59,7 +61,7 @@ def translate_sentence(sp_words, goal_transl, file_translated, m1):
   en_translation = ''
 
   for sp_word in sp_words:
-    sp_word_stemmed = tokenize_sp_stemmed(sp_word)
+    sp_word_stemmed = sp_word  # tokenize_sp_stemmed(sp_word)
 
     # Typical words.
     if sp_word_stemmed in m1.sp_vocab or sp_word in SP_PUNCTUATION:
