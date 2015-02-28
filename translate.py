@@ -48,25 +48,8 @@ def main():
   file_translated = open('%s_translations' % FILENAME, 'w')
 
   for i, sp_sentence in enumerate(sp_sentences):
-    if PRINT_MSGS: print '\n'
-    if PRINT_MSGS: print 'Spanish:  %s' % sp_sentence.replace('\n', '')
+    translate_sentence(sp_sentence, m1, file_translated)
 
-    sp_words = sp_sentence.split()
-    en_translation = ''
-
-    for sp_word in sp_words:
-      sp_word_stemmed = tokenize_sp_stemmed(sp_word)
-
-      # Deals with punctuation, etc. 
-      if sp_word_stemmed not in m1.sp_vocab and sp_word not in SPANISH_PUNCTUATION:
-        en_translation += '%s ' % sp_word     # TODO: this part is super bad
-      # Typical words
-      else:
-        en_translation += '%s ' % m1.top_english_word(sp_word_stemmed)
-
-    file_translated.write(en_translation + '\n')
-    if PRINT_MSGS: print 'English:  %s' % en_translation
-    if PRINT_MSGS: print '   Goal:  %s' % goal_transln[i]
   file_translated.close()
 
 def get_lines_of_file(fileName):
@@ -101,6 +84,26 @@ def tokenize_sp_stemmed(sp_sentence):
     # Substitute multiple whitespace with single whitespace, then
     # append the cleaned line to the list.
   return ' '.join(line.split())
+
+def translate_sentence(sp_sentence, m1, file_translated):
+  if PRINT_MSGS: print '\nSpanish:  %s' % sp_sentence.replace('\n', '')
+
+  sp_words = sp_sentence.split()
+  en_translation = ''
+
+  for sp_word in sp_words:
+    sp_word_stemmed = tokenize_sp_stemmed(sp_word)
+
+    # Deals with punctuation, etc. 
+    if sp_word_stemmed not in m1.sp_vocab and sp_word not in SPANISH_PUNCTUATION:
+      en_translation += '%s ' % sp_word     # TODO: this part is super bad
+    # Typical words
+    else:
+      en_translation += '%s ' % m1.top_english_word(sp_word_stemmed)
+
+  file_translated.write(en_translation + '\n')
+  if PRINT_MSGS: print 'English:  %s' % en_translation
+  if PRINT_MSGS: print '   Goal:  %s' % goal_transln[i]
 
 
 if __name__ == "__main__":
