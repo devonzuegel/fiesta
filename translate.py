@@ -36,6 +36,7 @@ UTF_SPECIAL_CHARS = {
 PATH_TO_TRAIN = './es-en/train/'
 FILENAME = 'test2'
 SPANISH_PUNCTUATION = set(['¿', '¡'])
+PRINT_MSGS = not True
 
 def main():
   m1 = M1()
@@ -44,11 +45,11 @@ def main():
   sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
   goal_transln = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
 
-  file_translated = open(FILENAME + '_translanted', 'w')
+  file_translated = open('%s_translations' % FILENAME, 'w')
 
   for i, sp_sentence in enumerate(sp_sentences):
-    print '\n'
-    print 'Spanish:  %s' % sp_sentence.replace('\n', '')
+    if PRINT_MSGS: print '\n'
+    if PRINT_MSGS: print 'Spanish:  %s' % sp_sentence.replace('\n', '')
 
     sp_words = sp_sentence.split()
     en_translation = ''
@@ -64,8 +65,8 @@ def main():
         en_translation += '%s ' % m1.top_english_word(sp_word_stemmed)
 
     file_translated.write(en_translation + '\n')
-    print 'English:  %s' % en_translation
-    print '   Goal:  %s' % goal_transln[i]
+    if PRINT_MSGS: print 'English:  %s' % en_translation
+    if PRINT_MSGS: print '   Goal:  %s' % goal_transln[i]
   file_translated.close()
 
 def get_lines_of_file(fileName):
@@ -105,6 +106,6 @@ def tokenize_sp_stemmed(sp_sentence):
 if __name__ == "__main__":
   startTime = datetime.now()
   main()
-  print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
+  if PRINT_MSGS: print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
 
   
