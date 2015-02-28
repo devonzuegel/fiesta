@@ -80,6 +80,7 @@ def main():
     max_bigram_score = 0
     best_sentence  = en_translation.split()
     possible_arrangements = rearrange_sentence(best_sentence)
+    print len(list(possible_arrangements))
     for sentence in possible_arrangements:
       #print sentence
       bigram_score = 0.0
