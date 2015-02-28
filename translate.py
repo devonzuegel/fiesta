@@ -9,7 +9,7 @@ import copy
 import re
 from datetime import datetime
 from bisect import bisect_left
-
+import numpy as np
 from IBMModel1 import M1
 
 UTF_SPECIAL_CHARS = {
@@ -34,39 +34,44 @@ UTF_SPECIAL_CHARS = {
   '&quot;' : ''
 }
 PATH_TO_TRAIN = './es-en/train/'
+PATH_TO_DEV = './es-en/dev/'
+PATH_TO_TEST = './es-en/test/'
+FILENAME = 'newstest2012'
+FILENAME = 'newstest2013'
 FILENAME = 'test2'
-SPANISH_PUNCTUATION = set(['¿', '¡'])
+SP_PUNCTUATION = set(['¿', '¡'])
+PRINT_MSGS = not True
 
 def main():
   m1 = M1()
 
-  # Get sp_sentences to translate out of file (no tokenizing)
+  # Get sp_sentences to translate out of file (no tokenizing yet).
   sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
-  goal_transln = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
+  goal_transls = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
 
-  file_translated = open(FILENAME + '_translanted', 'w')
+  with open('%s_translated' % FILENAME, 'w') as f:
+    for i, sp_sentence in enumerate(sp_sentences):
+      if PRINT_MSGS: print '\nSpanish:  %s' % sp_sentence.replace('\n', '')
+      translate_sentence(sp_sentence.split(), goal_transls[i], f, m1)
 
-  for i, sp_sentence in enumerate(sp_sentences):
-    print '\n'
-    print 'Spanish:  %s' % sp_sentence.replace('\n', '')
 
-    sp_words = sp_sentence.split()
-    en_translation = ''
+def translate_sentence(sp_words, goal_transl, file_translated, m1):
+  en_translation = ''
 
-    for sp_word in sp_words:
-      sp_word_stemmed = tokenize_sp_stemmed(sp_word)
+  for sp_word in sp_words:
+    sp_word_stemmed = tokenize_sp_stemmed(sp_word)
 
-      # Deals with punctuation, etc. 
-      if sp_word_stemmed not in m1.sp_vocab and sp_word not in SPANISH_PUNCTUATION:
-        en_translation += '%s ' % sp_word     # TODO: this part is super bad
-      # Typical words
-      else:
-        en_translation += '%s ' % m1.top_english_word(sp_word_stemmed)
+    # Typical words.
+    if sp_word_stemmed in m1.sp_vocab or sp_word in SP_PUNCTUATION:
+      en_translation += '%s ' % m1.top_english_word(sp_word_stemmed)
+    # Deals with punctuation, etc. 
+    else:
+      en_translation += '%s ' % sp_word     # TODO: this part is super bad
 
-    file_translated.write(en_translation + '\n')
-    print 'English:  %s' % en_translation
-    print '   Goal:  %s' % goal_transln[i]
-  file_translated.close()
+  file_translated.write(en_translation + '\n')
+  if PRINT_MSGS: print 'English:  %s' % en_translation
+  if PRINT_MSGS: print '   Goal:  %s' % goal_transl
+
 
 def get_lines_of_file(fileName):
   with open(fileName,'r') as f:
@@ -105,6 +110,6 @@ def tokenize_sp_stemmed(sp_sentence):
 if __name__ == "__main__":
   startTime = datetime.now()
   main()
-  print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
+  if PRINT_MSGS: print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
 
   
