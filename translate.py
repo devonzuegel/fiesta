@@ -59,10 +59,10 @@ def main():
       sp_word_stemmed = tokenize_sp_stemmed(sp_word)
 
       bigram = 'X'
-      if i > 2:
-      	english_translation_so_far = en_translation.split()
-      	#TODO: rename 
-      	bigram = english_translation_so_far[i - 2] + " " + english_translation_so_far[i - 3]
+      english_translation_so_far = en_translation.split()
+      curr_len = len(english_translation_so_far)
+      if  curr_len >= 2:
+      	bigram = english_translation_so_far[curr_len - 2] 
 
       # Deals with punctuation, etc. 
       if sp_word_stemmed not in m1.sp_vocab and sp_word not in SPANISH_PUNCTUATION:
@@ -71,16 +71,17 @@ def main():
       else:
         en_translation += '%s ' % m1.top_english_word(sp_word_stemmed, bigram)
 
-      if i > 2:
-        m1.get_bigram_probability(bigram,m1.top_english_word(sp_word_stemmed, bigram) )
+      # if i > 2:
+      #   m1.get_bigram_probability(bigram,m1.top_english_word(sp_word_stemmed, bigram) )
 
-    #Use bigram probabilities to rearrange words
-    #Find all possible rearrangement of words in sentence 
+    # Use bigram probabilities to rearrange words
+    # Find all possible rearrangement of words in sentence 
     num_words_in_trans_sentence = len(en_translation.split())
     max_bigram_score = 0
     best_sentence  = en_translation.split()
     possible_arrangements = rearrange_sentence(best_sentence)
     for sentence in possible_arrangements:
+      #print sentence
       bigram_score = 0
       for i in range(num_words_in_trans_sentence):
         if i >= 2:
@@ -91,11 +92,7 @@ def main():
         best_sentence = sentence
 
     en_translation = ' '.join(best_sentence)
-    # for i1 in range(num_words_in_trans_sentence):
-    # 	for i2 in range(num_words_in_trans_sentence):
-    # 		if i1 != i2:
 
-    #loop through 
 
     file_translated.write(en_translation + '\n')
     print 'English:  %s' % en_translation
