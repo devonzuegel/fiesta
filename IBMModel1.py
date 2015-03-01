@@ -38,7 +38,7 @@ UTF_SPECIAL_CHARS = {
   '&quot;' : ''
 }
 USE_CACHE = True
-CACHE_FILE = 'translated_file'
+CACHE_FILE = 'transl_probs_cache'
 PRINT_MSGS = not True
 
 class M1:
@@ -52,7 +52,8 @@ class M1:
 
     self.build_vocab_indices()
 
-    if USE_CACHE and os.path.exists(CACHE_FILE):
+    user_input = raw_input('Use cached transl_probs? (y/n):  ')
+    if user_input.lower() == 'y' and os.path.exists(CACHE_FILE):
       print 'Loading transl_probs from cache...'
       with open(CACHE_FILE, 'rb') as f:
         self.transl_probs = np.loadtxt(CACHE_FILE)
