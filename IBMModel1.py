@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import getopt
-import os
-import math
-import collections
-import copy
-import re
+import sys, getopt, os, math, collections, copy, re, numpy as np
 from datetime import datetime
 from bisect import bisect_left
-import numpy as np
 from nltk.util import ngrams
+from web2py_utils import search
+
+leve = search.Levenshtein()
 
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
@@ -91,8 +87,20 @@ class M1:
       adjusted_probs[i] /= self.get_unigram_probability(self.en_vocab[i])
     i_of_max = np.argmax(adjusted_probs)
 
+    ## Makes the score worse, so take it out for now. :(
+    # return self.word_with_lowest_edit_dist(sp_word, adjusted_probs)
+
     return self.en_vocab[i_of_max]  # Top English translation for sp_word
 
+  def word_with_lowest_edit_dist(self, sp_word, adjusted_probs):
+    indices_of_best = []
+    for i in range(2):
+      i_of_best = np.argmax(adjusted_probs)
+      indices_of_best.append(i_of_best)
+      adjusted_probs[i_of_best] = 0
+    best_list = [self.en_vocab[i] for i in indices_of_best]
+    
+    return leve.suggestion(sp_word, best_list, number_of_matches=1)[0][1]
 
   ##
   # Initialize transl_probs uniformly. It's table from spanish words to

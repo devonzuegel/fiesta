@@ -52,13 +52,15 @@ Further information on p. 880 of the textbook.
 - [x] optimize algorithm ( @luttigdev )
   - [ ] just reset at each iteration or completely recreate? (applies to multiple data structures)
 - [x] lowercase? DOESN'T MATTER
+- [x] **implement evaluation/run-through for `dev/` folder through Bleu ASAP**
+- [x] Viterbi + nltk (parts of speech tagging » reordering Sp-Eng verbs for exmaple)
+  - didn't help much :(
+  - NOTE: can't tag single English words because not enough context
+
 - [ ] add english language model (single-word probabilities) (Zoe, Thursday)
-- [ ] **implement evaluation/run-through for `dev/` folder through Bleu ASAP**
-- [ ] bigrams
+  - [ ] bigrams
     - translating 2 words ??
 - [ ] decide new priorities once we get Bleu working
-- [ ] Viterbi + nltk (parts of speech tagging » reordering Sp-Eng verbs for exmaple)
-  - NOTE: can't tag single English words because not enough context
 - [ ] conjugations in Spanish indicate subject ("Tengo" == "Yo tengo") ... deal with this!
 
 ### Questions
@@ -67,7 +69,8 @@ Further information on p. 880 of the textbook.
 
 ## Misc
 - [ ] shouldn't remove commas from translation...
-- [ ] Shouldn't remove &quot; and similar thingies
+- [x] Shouldn't remove &quot; and similar thingies
+  - seems to remove spaces around it still
 
 
 ### Report
