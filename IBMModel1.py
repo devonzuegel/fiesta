@@ -13,7 +13,7 @@ import numpy as np
 
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
-#FILENAME = 'europarl-v7.es-en'
+FILENAME = 'europarl-v7.es-en'
 FILENAME = 'test2'
 N_ITERATIONS = 20
 UTF_SPECIAL_CHARS = {
@@ -35,7 +35,8 @@ UTF_SPECIAL_CHARS = {
   '\\xc3\\xbc' : 'U',
   '\'' : '',
   '\\n' : '',
-  '&quot;' : ''
+  '&quot;' : '',
+  ' \\xe\\x\\x ' : '\''
 }
 USE_CACHE = True
 CACHE_FILE = 'transl_probs_cache'
