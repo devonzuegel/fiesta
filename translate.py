@@ -48,7 +48,7 @@ def main(filename):
   translns_file = open('%s_translations' % filename, 'w')
 
   user_response = raw_input('\nTranslate with just IBM Model 1? (y/n) ').lower()
-  just_ibm_m1 = user_response != 'y'
+  just_ibm_m1 = user_response == 'y'
 
   print 'Translating sentences...'
   for i, sp_sentence in enumerate(sp_sentences):
