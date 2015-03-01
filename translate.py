@@ -43,12 +43,13 @@ def main():
 
   # Get sp_sentences to translate out of file (no tokenizing)
   sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
-  goal_transln = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
+  goal_translns = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
 
   file_translated = open('%s_translations' % FILENAME, 'w')
 
+  print 'Translating sentences...'
   for i, sp_sentence in enumerate(sp_sentences):
-    translate_sentence(sp_sentence, m1, file_translated)
+    translate_sentence(sp_sentence, m1, file_translated, goal_translns[i])
 
   file_translated.close()
 
@@ -85,7 +86,7 @@ def tokenize_sp_stemmed(sp_sentence):
     # append the cleaned line to the list.
   return ' '.join(line.split())
 
-def translate_sentence(sp_sentence, m1, file_translated):
+def translate_sentence(sp_sentence, m1, file_translated, goal_transln):
   if PRINT_MSGS: print '\nSpanish:  %s' % sp_sentence.replace('\n', '')
 
   sp_words = sp_sentence.split()
@@ -103,7 +104,7 @@ def translate_sentence(sp_sentence, m1, file_translated):
 
   file_translated.write(en_translation + '\n')
   if PRINT_MSGS: print 'English:  %s' % en_translation
-  if PRINT_MSGS: print '   Goal:  %s' % goal_transln[i]
+  if PRINT_MSGS: print '   Goal:  %s' % goal_transln
 
 
 if __name__ == "__main__":
