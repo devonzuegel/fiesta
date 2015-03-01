@@ -47,7 +47,7 @@ def main(filename):
 
   translns_file = open('%s_translations' % filename, 'w')
 
-  user_response = raw_input('\nJust IBM Model 1? (y/n) ').lower()
+  user_response = raw_input('\nTranslate with just IBM Model 1? (y/n) ').lower()
   just_ibm_m1 = user_response != 'y'
 
   print 'Translating sentences...'
@@ -100,7 +100,7 @@ def translate_sentence(sp_sentence, m1, translns_file, goal_transln, just_ibm_m1
     else:
       en_translation += '%s ' % m1.top_english_word(sp_word)
 
-  if just_ibm_m1:
+  if not just_ibm_m1:
     en_translation = flip_nouns_adjs(en_translation.encode('utf-8'))
   
   translns_file.write(en_translation + '\n')
