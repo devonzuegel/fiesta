@@ -47,10 +47,13 @@ def main(filename):
 
   translns_file = open('%s_translations' % filename, 'w')
 
+  user_response = raw_input('\nJust IBM Model 1? (y/n) ').lower()
+  just_ibm_m1 = user_response != 'y'
+
   print 'Translating sentences...'
   for i, sp_sentence in enumerate(sp_sentences):
-    sp_sentence_tokenized = nltk.word_tokenize(sp_sentence.decode("utf-8"))
-    translate_sentence(sp_sentence_tokenized, m1, translns_file, goal_translns[i])
+    sp_sentence = nltk.word_tokenize(sp_sentence.decode("utf-8"))
+    translate_sentence(sp_sentence, m1, translns_file, goal_translns[i], just_ibm_m1)
 
   translns_file.close()
 
@@ -84,7 +87,7 @@ def tokenize_sp_stemmed(sp_sentence):
     # append the cleaned line to the list.
   return ' '.join(line.split())
 
-def translate_sentence(sp_sentence, m1, translns_file, goal_transln):
+def translate_sentence(sp_sentence, m1, translns_file, goal_transln, just_ibm_m1):
   if PRINT_MSGS: print '\nSpanish:  %s' % sp_sentence.replace('\n', '')
 
   en_translation = ''
@@ -92,14 +95,13 @@ def translate_sentence(sp_sentence, m1, translns_file, goal_transln):
   for sp_word in sp_sentence:
     sp_word = tokenize_sp_stemmed(sp_word.encode('utf-8'))
 
-    # Deals with punctuation, etc. 
     if sp_word not in m1.sp_vocab and sp_word not in SPANISH_PUNCTUATION:
       en_translation += '%s ' % sp_word     # TODO: this part is super bad
-    # Typical words
     else:
       en_translation += '%s ' % m1.top_english_word(sp_word)
 
-  en_translation = flip_nouns_adjs(en_translation.encode('utf-8'))
+  if just_ibm_m1:
+    en_translation = flip_nouns_adjs(en_translation.encode('utf-8'))
   
   translns_file.write(en_translation + '\n')
   if PRINT_MSGS: print 'English:  %s' % en_translation
@@ -118,7 +120,8 @@ def flip_nouns_adjs(en_transln):
     prev_word, curr_word = prev_tupl[0].encode('utf-8'), curr_tupl[0].encode('utf-8')
     prev_POS,  curr_POS  = prev_tupl[1], curr_tupl[1]
 
-    if curr_POS == 'JJ' and prev_POS == 'NN':
+    prev_is_noun = prev_POS=='NN' or prev_POS=='NNS' or prev_POS=='NNP' or prev_POS=='NNPS'
+    if curr_POS == 'JJ' and prev_is_noun:
       tagged[i-1] = curr_tupl
       tagged[i] = prev_tupl
     # if curr_POS == 'NN' and prev_POS == 'NN':
@@ -126,7 +129,6 @@ def flip_nouns_adjs(en_transln):
     #   tagged[i] = prev_tupl
 
   return ' '.join([t[0].encode('utf-8') for t in tagged])
-  # return en_transln
 
 
 if __name__ == "__main__":

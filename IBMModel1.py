@@ -10,6 +10,7 @@ import re
 from datetime import datetime
 from bisect import bisect_left
 import numpy as np
+from nltk.util import ngrams
 
 PATH_TO_TRAIN = './es-en/train/'
 # PATH_TO_DEV = './es-en/dev/'
@@ -80,25 +81,16 @@ class M1:
 
 
   def top_english_word(self, sp_word):
-    if sp_word not in self.sp_vocab:
-      return sp_word
+    # Deal with unknown words.
+    if sp_word not in self.sp_vocab:  return sp_word
 
-    #print self.en_unigram_counts
     sp_row = self.sp_vocab_indices[sp_word]
 
     adjusted_probs = copy.deepcopy(self.transl_probs[sp_row]) #self.transl_probs
     for i in range(len(adjusted_probs)):
-      #print self.get_unigram_probability(self.en_vocab[i])
       adjusted_probs[i] /= self.get_unigram_probability(self.en_vocab[i])
-      #print adjusted_probs[i]
     i_of_max = np.argmax(adjusted_probs)
-    #return i_of_max
-    # max_prob = 
-    # max_prob_index = 
-    # for index in range(0, len(self.transl_probs[sp_row])):
-    #   new_prob = self.transl_probs[sp_row][index] * get_unigram_probability[]
-    #print "TEST"
-    #print self.en_vocab[i_of_max]
+
     return self.en_vocab[i_of_max]  # Top English translation for sp_word
 
 
