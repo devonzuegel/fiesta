@@ -45,8 +45,12 @@ def main(filename):
   sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, filename))
   goal_translns = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, filename))
 
+  # Opens file into which will dump our translations line-by-line.
   translns_file = open('%s_translations' % filename, 'w')
 
+  ##
+  # Asks user if they only want to use basic IBM Model 1 or also use noun-adj
+  # flipping + bigram ordering to refine their results.
   user_response = raw_input('\nTranslate with just IBM Model 1? (y/n) ').lower()
   just_ibm_m1 = user_response == 'y'
 
@@ -101,12 +105,14 @@ def translate_sentence(sp_sentence, m1, translns_file, goal_transln, just_ibm_m1
       en_translation += '%s ' % m1.top_english_word(sp_word)
 
   if not just_ibm_m1:
-    en_translation = flip_nouns_adjs(en_translation.encode('utf-8'))
+    en_translation = order_sentence(en_translation.encode('utf-8'))
   
   translns_file.write(en_translation + '\n')
   if PRINT_MSGS: print 'English:  %s' % en_translation
   if PRINT_MSGS: print '   Goal:  %s' % goal_transln
 
+def order_sentence(en_translation):
+  return flip_nouns_adjs(en_translation)
 
 # For each adjective, if the prev word is a noun, flip the two.
 def flip_nouns_adjs(en_transln):
