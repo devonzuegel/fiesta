@@ -53,7 +53,7 @@ class M1:
 
     self.build_vocab_indices()
 
-    user_input = raw_input('Use cached transl_probs? (y/n):  ')
+    user_input = raw_input('Use cached transl_probs? (y/n): ')
     if user_input.lower() == 'y' and os.path.exists(CACHE_FILE):
       print 'Loading transl_probs from cache...'
       with open(CACHE_FILE, 'rb') as f:
