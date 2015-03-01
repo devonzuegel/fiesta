@@ -3,8 +3,9 @@
 import sys, getopt, os, math, collections, copy, re, numpy as np
 from datetime import datetime
 from bisect import bisect_left
-from nltk.util import ngrams
 from web2py_utils import search
+from nltk.util import ngrams
+from collections import defaultdict
 
 leve = search.Levenshtein()
 
@@ -61,9 +62,9 @@ class M1:
 
 
   ##
-  # Build dict for each vocabulary in which keys are words and their
-  # values are their respective indices. This will allow lookup of
-  # words from row/column in the `transl_probs` & `counts` tables.
+    # Build dict for each vocabulary in which keys are words and their
+    # values are their respective indices. This will allow lookup of
+    # words from row/column in the `transl_probs` & `counts` tables.
   def build_vocab_indices(self):
     self.en_vocab_indices = {}
     self.sp_vocab_indices = {}
@@ -92,6 +93,7 @@ class M1:
 
     return self.en_vocab[i_of_max]  # Top English translation for sp_word
 
+  
   def word_with_lowest_edit_dist(self, sp_word, adjusted_probs):
     indices_of_best = []
     for i in range(2):
@@ -103,11 +105,11 @@ class M1:
     return leve.suggestion(sp_word, best_list, number_of_matches=1)[0][1]
 
   ##
-  # Initialize transl_probs uniformly. It's table from spanish words to
-  # english words (list of lists) to probability of that english word being
-  # the correct translation. Every translation probability is
-  # initialized to (1/# english words) since every word is equally
-  # likely to be the correct translation.
+    # Initialize transl_probs uniformly. It's table from spanish words to
+    # english words (list of lists) to probability of that english word being
+    # the correct translation. Every translation probability is
+    # initialized to (1/# english words) since every word is equally
+    # likely to be the correct translation.
   def init_transl_probs(self):
     # Create matrix uniformly filled with `1*uniform_prob`
     uniform_prob = 1.0 / self.n_en_words
@@ -117,6 +119,7 @@ class M1:
   # Create the counts table.
   def init_counts(self):
     return np.zeros((self.n_sp_words, self.n_en_words))
+
 
   def train_transl_probs(self, sentence_pairs):
 
@@ -167,8 +170,7 @@ class M1:
   def get_unigram_probability(self, sp_word):
     return self.en_unigram_counts[sp_word] * (1.0) / self.total_num_words
 
-  ##
-  # Takes in an array of sentences of sp and en words
+  ##_en # Takes in an array of sentences of sp and en words
   # returns tuples in the form of (sp sentence, en sentence)
   def deconstuct_sentences(self, sp_doc, en_doc):
     if PRINT_MSGS: print '\n=== Deconstructing sentences & building vocabs...'
@@ -177,17 +179,25 @@ class M1:
     # to the respective vocabularies.
     en_vocab, sp_vocab = set(), set()
     self.en_unigram_counts = collections.defaultdict(lambda:0) 
-    self.total_num_words = 0 
-
+    self.total_n_en_words = 0
+    self.en_bigram_counts = defaultdict(lambda: 0, {})
 
     for en_sentence in en_doc:
-      for en_word in en_sentence.split(' '):
-        self.en_unigram_counts[en_word] += 1
-        en_vocab.add(en_word)
-        self.total_num_words += 1
+      en_tokens = en_sentence.split(' ')
+      for i in range(len(en_tokens)):
+        curr_en_word = en_tokens[i]
+        
+        if i+1 < len(en_tokens):
+          bigram = '%s %s' % (en_tokens[i], en_tokens[i+1])
+          self.en_bigram_counts[bigram] += 1
+
+
+        self.en_unigram_counts[curr_en_word] += 1
+        en_vocab.add(curr_en_word)
+        self.total_n_en_words += 1
     for sp_sentence in sp_doc:
-      for sp_word in sp_sentence.split(' '):
-        sp_vocab.add(sp_word)
+      sp_tokens = sp_sentence.split(' ')
+      for sp_word in sp_tokens:   sp_vocab.add(sp_word)
         
     # Build sorted vocab list.
     self.en_vocab, self.sp_vocab = list(sorted(en_vocab)), list(sorted(sp_vocab))
