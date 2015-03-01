@@ -35,7 +35,7 @@ UTF_SPECIAL_CHARS = {
   '\\n' : '',
 }
 PATH_TO_TRAIN = './es-en/train/'
-SPANISH_PUNCTUATION = set(['¿', '¡'])
+SP_PUNCTN = set(['¿', '¡'])
 PRINT_MSGS = not True
 
 def main(filename):
@@ -95,7 +95,7 @@ def translate_sentence(sp_sentence, m1, translns_file, goal_transln, just_ibm_m1
   for sp_word in sp_sentence:
     sp_word = tokenize_sp_stemmed(sp_word.encode('utf-8'))
 
-    if sp_word not in m1.sp_vocab and sp_word not in SPANISH_PUNCTUATION:
+    if sp_word not in m1.sp_vocab and sp_word not in SP_PUNCTN:
       en_translation += '%s ' % sp_word     # TODO: this part is super bad
     else:
       en_translation += '%s ' % m1.top_english_word(sp_word)
@@ -108,25 +108,21 @@ def translate_sentence(sp_sentence, m1, translns_file, goal_transln, just_ibm_m1
   if PRINT_MSGS: print '   Goal:  %s' % goal_transln
 
 
+# For each adjective, if the prev word is a noun, flip the two.
 def flip_nouns_adjs(en_transln):
-  # For each adjective
-    # If the preceeding word is tagged as a noun
-      # Flip the two
   # Tokenizes `en_transln` then tags each token
   tagged = pos_tag(nltk.word_tokenize(en_transln.decode("utf-8")))
 
   for i in range(1, len(tagged)):
     prev_tupl, curr_tupl = tagged[i-1], tagged[i]
-    prev_word, curr_word = prev_tupl[0].encode('utf-8'), curr_tupl[0].encode('utf-8')
     prev_POS,  curr_POS  = prev_tupl[1], curr_tupl[1]
 
     prev_is_noun = prev_POS=='NN' or prev_POS=='NNS' or prev_POS=='NNP' or prev_POS=='NNPS'
-    if curr_POS == 'JJ' and prev_is_noun:
+    curr_is_adjv = curr_POS == 'JJ'
+    # If you see an adjective after a noun, flip them.
+    if curr_is_adjv and prev_is_noun:
       tagged[i-1] = curr_tupl
       tagged[i] = prev_tupl
-    # if curr_POS == 'NN' and prev_POS == 'NN':
-    #   tagged[i-1] = curr_tupl
-    #   tagged[i] = prev_tupl
 
   return ' '.join([t[0].encode('utf-8') for t in tagged])
 
