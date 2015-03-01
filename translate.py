@@ -38,12 +38,12 @@ PATH_TO_TRAIN = './es-en/train/'
 SP_PUNCTN = set(['¿', '¡'])
 PRINT_MSGS = not True
 
-def main(filename):
+def main(path, filename):
   m1 = M1()
 
   # Get sp_sentences to translate out of file (no tokenizing)
-  sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, filename))
-  goal_translns = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, filename))
+  sp_sentences = get_lines_of_file('%s%s.es' % (path, filename))
+  goal_translns = get_lines_of_file('%s%s.en' % (path, filename))
 
   # Opens file into which will dump our translations line-by-line.
   translns_file = open('%s_translations' % filename, 'w')
@@ -138,11 +138,12 @@ if __name__ == "__main__":
   if len(sys.argv) < 2:
     print 'Requires name of file to translate. Aborting...'
   else:
-    filename = sys.argv[1]
-    main(filename)
+    path = sys.argv[1]
+    filename = sys.argv[2]
+    main(path, filename)
     
     # Print bleu_score
-    bleu_cmd = 'python bleu_score.py es-en/train/%s.en %s_translations' % (filename, filename)
+    bleu_cmd = 'python bleu_score.py %s%s.en %s_translations' % (path, filename, filename)
     os.system(bleu_cmd)
     
     print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
