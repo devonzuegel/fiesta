@@ -168,7 +168,7 @@ class M1:
 
 
   def get_unigram_probability(self, sp_word):
-    return self.en_unigram_counts[sp_word] * (1.0) / self.total_num_words
+    return self.en_unigram_counts[sp_word] * (1.0) / self.total_n_en_words
 
   ##_en # Takes in an array of sentences of sp and en words
   # returns tuples in the form of (sp sentence, en sentence)

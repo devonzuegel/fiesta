@@ -48,6 +48,7 @@ def main(filename):
   # Opens file into which will dump our translations line-by-line.
   translns_file = open('%s_translations' % filename, 'w')
 
+  
   ##
   # Asks user if they only want to use basic IBM Model 1 or also use noun-adj
   # flipping + bigram ordering to refine their results.
