@@ -35,18 +35,17 @@ UTF_SPECIAL_CHARS = {
   '\\n' : '',
 }
 PATH_TO_TRAIN = './es-en/train/'
-FILENAME = 'test2'
 SPANISH_PUNCTUATION = set(['¿', '¡'])
 PRINT_MSGS = not True
 
-def main():
+def main(filename):
   m1 = M1()
 
   # Get sp_sentences to translate out of file (no tokenizing)
-  sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
-  goal_translns = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
+  sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, filename))
+  goal_translns = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, filename))
 
-  translns_file = open('%s_translations' % FILENAME, 'w')
+  translns_file = open('%s_translations' % filename, 'w')
 
   print 'Translating sentences...'
   for i, sp_sentence in enumerate(sp_sentences):
@@ -55,8 +54,8 @@ def main():
 
   translns_file.close()
 
-def get_lines_of_file(fileName):
-  with open(fileName,'r') as f:
+def get_lines_of_file(filename):
+  with open(filename,'r') as f:
     return [line for line in f]
 
 
@@ -112,13 +111,22 @@ def flip_nouns_adjs(en_translation):
     # If the preceeding word is tagged as a noun
       # Flip the two
   # Tokenizes `en_translation` then tags each token
-  tagged = pos_tag(nltk.word_tokenize(en_translation.decode("utf-8")))
-
+  # tagged = pos_tag(nltk.word_tokenize(en_translation.decode("utf-8")))
+  # print tagged
   return en_translation
 
 if __name__ == "__main__":
   startTime = datetime.now()
-  main()
-  if PRINT_MSGS: print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
+  if len(sys.argv) < 2:
+    print 'Requires name of file to translate. Aborting...'
+  else:
+    filename = sys.argv[1]
+    main(filename)
+    
+    # Print bleu_score
+    bleu_cmd = 'python bleu_score.py es-en/train/%s.en %s_translations' % (filename, filename)
+    os.system(bleu_cmd)
+    
+    print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
 
   
