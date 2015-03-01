@@ -1,1 +1,1 @@
-¿ Qué significa esto ?
+Esto no tiene nada que ver con la Unión Europea .
