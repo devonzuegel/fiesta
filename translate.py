@@ -33,7 +33,6 @@ UTF_SPECIAL_CHARS = {
   '\\xf3' : 'O',
   '\'' : '',
   '\\n' : '',
-  '&quot;' : ''
 }
 PATH_TO_TRAIN = './es-en/train/'
 FILENAME = 'test2'
