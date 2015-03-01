@@ -99,7 +99,7 @@ def translate_sentence(sp_sentence, m1, translns_file, goal_transln, just_ibm_m1
   for sp_word in sp_sentence:
     sp_word = tokenize_sp_stemmed(sp_word.encode('utf-8'))
 
-    if sp_word not in m1.sp_vocab and sp_word not in SP_PUNCTN:
+    if (sp_word not in m1.sp_vocab) and (sp_word not in SP_PUNCTN):
       en_translation += '%s ' % sp_word     # TODO: this part is super bad
     else:
       en_translation += '%s ' % m1.top_english_word(sp_word)

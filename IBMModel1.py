@@ -37,6 +37,7 @@ UTF_SPECIAL_CHARS = {
 USE_CACHE = True
 CACHE_FILE = 'transl_probs_cache'
 PRINT_MSGS = not True
+BUILD_BIGRAMS = not True
 
 class M1:
 
@@ -83,7 +84,7 @@ class M1:
 
     sp_row = self.sp_vocab_indices[sp_word]
 
-    adjusted_probs = copy.deepcopy(self.transl_probs[sp_row]) #self.transl_probs
+    adjusted_probs = copy.deepcopy(self.transl_probs[sp_row])
     for i in range(len(adjusted_probs)):
       adjusted_probs[i] /= self.get_unigram_probability(self.en_vocab[i])
     i_of_max = np.argmax(adjusted_probs)
@@ -180,16 +181,17 @@ class M1:
     en_vocab, sp_vocab = set(), set()
     self.en_unigram_counts = collections.defaultdict(lambda:0) 
     self.total_n_en_words = 0
-    self.en_bigram_counts = defaultdict(lambda: 0, {})
+    if BUILD_BIGRAMS: self.en_bigram_counts = defaultdict(lambda: 0, {})
 
     for en_sentence in en_doc:
       en_tokens = en_sentence.split(' ')
       for i in range(len(en_tokens)):
         curr_en_word = en_tokens[i]
         
-        if i+1 < len(en_tokens):
-          bigram = '%s %s' % (en_tokens[i], en_tokens[i+1])
-          self.en_bigram_counts[bigram] += 1
+        if BUILD_BIGRAMS:
+          if i+1 < len(en_tokens):
+            bigram = '%s %s' % (en_tokens[i], en_tokens[i+1])
+            self.en_bigram_counts[bigram] += 1
 
 
         self.en_unigram_counts[curr_en_word] += 1
