@@ -9,7 +9,8 @@ import copy
 import re
 from datetime import datetime
 from bisect import bisect_left
-
+import nltk
+from nltk.tag import pos_tag
 from IBMModel1 import M1
 
 UTF_SPECIAL_CHARS = {
@@ -29,6 +30,7 @@ UTF_SPECIAL_CHARS = {
   '\\xc3\\xb3' : 'O',
   '\\xc3\\xba' : 'U',
   '\\xc3\\xbc' : 'U',
+  '\\xf3' : 'O',
   '\'' : '',
   '\\n' : '',
   '&quot;' : ''
@@ -45,13 +47,14 @@ def main():
   sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
   goal_translns = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
 
-  file_translated = open('%s_translations' % FILENAME, 'w')
+  translns_file = open('%s_translations' % FILENAME, 'w')
 
   print 'Translating sentences...'
   for i, sp_sentence in enumerate(sp_sentences):
-    translate_sentence(sp_sentence, m1, file_translated, goal_translns[i])
+    sp_sentence_tokenized = nltk.word_tokenize(sp_sentence.decode("utf-8"))
+    translate_sentence(sp_sentence_tokenized, m1, translns_file, goal_translns[i])
 
-  file_translated.close()
+  translns_file.close()
 
 def get_lines_of_file(fileName):
   with open(fileName,'r') as f:
@@ -67,7 +70,7 @@ def tokenize_sp_stemmed(sp_sentence):
     # format, with characters such as '\xc3\x8d' representing
     # special characters not found in typical ASCII.
   line = repr(sp_sentence.lower())
-  
+
   ##
     # Replace all instances of UTF-8 character codes with
     # uppercase letters of the nearest ASCII equivalent. For
@@ -77,35 +80,43 @@ def tokenize_sp_stemmed(sp_sentence):
     # characters, which are all lowercase.
   for utf8_code, replacement_char in UTF_SPECIAL_CHARS.items():
     line = line.replace(utf8_code, replacement_char)
-  
-  # Remove any non-whitespace, non-alphabetic characters.
-  line = re.sub(r'[^A-z ]', '', line)
 
   ##
     # Substitute multiple whitespace with single whitespace, then
     # append the cleaned line to the list.
   return ' '.join(line.split())
 
-def translate_sentence(sp_sentence, m1, file_translated, goal_transln):
+def translate_sentence(sp_sentence, m1, translns_file, goal_transln):
   if PRINT_MSGS: print '\nSpanish:  %s' % sp_sentence.replace('\n', '')
 
-  sp_words = sp_sentence.split()
   en_translation = ''
 
-  for sp_word in sp_words:
-    sp_word_stemmed = tokenize_sp_stemmed(sp_word)
+  for sp_word in sp_sentence:
+    sp_word = tokenize_sp_stemmed(sp_word.encode('utf-8'))
 
     # Deals with punctuation, etc. 
-    if sp_word_stemmed not in m1.sp_vocab and sp_word not in SPANISH_PUNCTUATION:
+    if sp_word not in m1.sp_vocab and sp_word not in SPANISH_PUNCTUATION:
       en_translation += '%s ' % sp_word     # TODO: this part is super bad
     # Typical words
     else:
-      en_translation += '%s ' % m1.top_english_word(sp_word_stemmed)
+      en_translation += '%s ' % m1.top_english_word(sp_word)
 
-  file_translated.write(en_translation + '\n')
+  en_translation = flip_nouns_adjs(en_translation.encode('utf-8'))
+  
+  translns_file.write(en_translation + '\n')
   if PRINT_MSGS: print 'English:  %s' % en_translation
   if PRINT_MSGS: print '   Goal:  %s' % goal_transln
 
+
+def flip_nouns_adjs(en_translation):
+  # For each adjective
+    # If the preceeding word is tagged as a noun
+      # Flip the two
+  # Tokenizes `en_translation` then tags each token
+  tagged = pos_tag(nltk.word_tokenize(en_translation.decode("utf-8")))
+  print en_translation
+  print tagged
+  return en_translation
 
 if __name__ == "__main__":
   startTime = datetime.now()
