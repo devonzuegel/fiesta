@@ -114,8 +114,7 @@ def flip_nouns_adjs(en_translation):
       # Flip the two
   # Tokenizes `en_translation` then tags each token
   tagged = pos_tag(nltk.word_tokenize(en_translation.decode("utf-8")))
-  print en_translation
-  print tagged
+
   return en_translation
 
 if __name__ == "__main__":
