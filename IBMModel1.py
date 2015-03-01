@@ -35,8 +35,6 @@ UTF_SPECIAL_CHARS = {
   '\\xc3\\xbc' : 'U',
   '\'' : '',
   '\\n' : '',
-  '&quot;' : '',
-  ' \\xe\\x\\x ' : '\''
 }
 USE_CACHE = True
 CACHE_FILE = 'transl_probs_cache'
@@ -233,7 +231,7 @@ def get_lines_of_file(fileName):
         line = line.replace(utf8_code, replacement_char)
       
       # Remove any non-whitespace, non-alphabetic characters.
-      line = re.sub(r'[^A-z ]', '', line)
+      line = re.sub(r'[^A-z&; ]', '', line)
       
       # Substitute multiple whitespace with single whitespace, then
       # append the cleaned line to the list.
