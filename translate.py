@@ -33,31 +33,32 @@ UTF_SPECIAL_CHARS = {
   '\\xf3' : 'O',
   '\'' : '',
   '\\n' : '',
-  '&quot;' : ''
 }
 PATH_TO_TRAIN = './es-en/train/'
-FILENAME = 'test2'
 SPANISH_PUNCTUATION = set(['¿', '¡'])
 PRINT_MSGS = not True
 
-def main():
+def main(filename):
   m1 = M1()
 
   # Get sp_sentences to translate out of file (no tokenizing)
-  sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
-  goal_translns = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
+  sp_sentences = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, filename))
+  goal_translns = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, filename))
 
-  translns_file = open('%s_translations' % FILENAME, 'w')
+  translns_file = open('%s_translations' % filename, 'w')
+
+  user_response = raw_input('\nTranslate with just IBM Model 1? (y/n) ').lower()
+  just_ibm_m1 = user_response != 'y'
 
   print 'Translating sentences...'
   for i, sp_sentence in enumerate(sp_sentences):
-    sp_sentence_tokenized = nltk.word_tokenize(sp_sentence.decode("utf-8"))
-    translate_sentence(sp_sentence_tokenized, m1, translns_file, goal_translns[i])
+    sp_sentence = nltk.word_tokenize(sp_sentence.decode("utf-8"))
+    translate_sentence(sp_sentence, m1, translns_file, goal_translns[i], just_ibm_m1)
 
   translns_file.close()
 
-def get_lines_of_file(fileName):
-  with open(fileName,'r') as f:
+def get_lines_of_file(filename):
+  with open(filename,'r') as f:
     return [line for line in f]
 
 
@@ -86,7 +87,7 @@ def tokenize_sp_stemmed(sp_sentence):
     # append the cleaned line to the list.
   return ' '.join(line.split())
 
-def translate_sentence(sp_sentence, m1, translns_file, goal_transln):
+def translate_sentence(sp_sentence, m1, translns_file, goal_transln, just_ibm_m1):
   if PRINT_MSGS: print '\nSpanish:  %s' % sp_sentence.replace('\n', '')
 
   en_translation = ''
@@ -94,32 +95,54 @@ def translate_sentence(sp_sentence, m1, translns_file, goal_transln):
   for sp_word in sp_sentence:
     sp_word = tokenize_sp_stemmed(sp_word.encode('utf-8'))
 
-    # Deals with punctuation, etc. 
     if sp_word not in m1.sp_vocab and sp_word not in SPANISH_PUNCTUATION:
       en_translation += '%s ' % sp_word     # TODO: this part is super bad
-    # Typical words
     else:
       en_translation += '%s ' % m1.top_english_word(sp_word)
 
-  en_translation = flip_nouns_adjs(en_translation.encode('utf-8'))
+  if not just_ibm_m1:
+    en_translation = flip_nouns_adjs(en_translation.encode('utf-8'))
   
   translns_file.write(en_translation + '\n')
   if PRINT_MSGS: print 'English:  %s' % en_translation
   if PRINT_MSGS: print '   Goal:  %s' % goal_transln
 
 
-def flip_nouns_adjs(en_translation):
+def flip_nouns_adjs(en_transln):
   # For each adjective
     # If the preceeding word is tagged as a noun
       # Flip the two
-  # Tokenizes `en_translation` then tags each token
-  tagged = pos_tag(nltk.word_tokenize(en_translation.decode("utf-8")))
+  # Tokenizes `en_transln` then tags each token
+  tagged = pos_tag(nltk.word_tokenize(en_transln.decode("utf-8")))
 
-  return en_translation
+  for i in range(1, len(tagged)):
+    prev_tupl, curr_tupl = tagged[i-1], tagged[i]
+    prev_word, curr_word = prev_tupl[0].encode('utf-8'), curr_tupl[0].encode('utf-8')
+    prev_POS,  curr_POS  = prev_tupl[1], curr_tupl[1]
+
+    prev_is_noun = prev_POS=='NN' or prev_POS=='NNS' or prev_POS=='NNP' or prev_POS=='NNPS'
+    if curr_POS == 'JJ' and prev_is_noun:
+      tagged[i-1] = curr_tupl
+      tagged[i] = prev_tupl
+    # if curr_POS == 'NN' and prev_POS == 'NN':
+    #   tagged[i-1] = curr_tupl
+    #   tagged[i] = prev_tupl
+
+  return ' '.join([t[0].encode('utf-8') for t in tagged])
+
 
 if __name__ == "__main__":
   startTime = datetime.now()
-  main()
-  if PRINT_MSGS: print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
+  if len(sys.argv) < 2:
+    print 'Requires name of file to translate. Aborting...'
+  else:
+    filename = sys.argv[1]
+    main(filename)
+    
+    # Print bleu_score
+    bleu_cmd = 'python bleu_score.py es-en/train/%s.en %s_translations' % (filename, filename)
+    os.system(bleu_cmd)
+    
+    print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
 
   
