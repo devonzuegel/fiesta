@@ -115,7 +115,6 @@ def order_sentence(en_transln, m1):
   for i in range(len(en_transln) - 1):
     curr_word, next_word = en_transln[i], en_transln[i+1]
     max_score += m1.en_bigram_counts['%s %s' % (curr_word, next_word)]
-  # print '\nmax_score (start):  %d' % max_score
   best = en_transln
   
   for i in range(len(permutatns)/8):
