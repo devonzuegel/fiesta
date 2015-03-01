@@ -43,7 +43,7 @@ do until convergence
     for all words e in en_sentence
       for all words s in sp_sentence
         count(e|s) += transl_prob(e|s) / total_e(e)
-        total_s(s)   += transl_prob(e|s) / total_e(e)
+        total_s(s) += transl_prob(e|s) / total_e(e)
   for all s
     for all e
       transl_prob(e|s) = count(e|s) / total_s(s)
@@ -51,13 +51,15 @@ do until convergence
 
 ### Further strategies
 
-- part-of-speech tagging and reordering once back in English
+- part-of-speech tagging and reordering once back in English; specifically, any time we saw an adjective following a noun, we flipped the two so that the adjective would come first, as it always does in English but doesn't always do in Spanish.
 
 Things we tried that didn't seem to improve the translator:
 
 - built a bigram English-language model and then tried to extract the most likely permutation of the translated English "bag of words" with that model. Running through each permutation of every sentence took forever, so we were forced to take it out of the translator. We tried to think of better ways to go about extracting candidates from the permutations so we wouldn't have to run through so many, but after brainstorming and implementing several ideas it didn't seem to improve the model and remained immensely slow.
 
 - Instead of simply returning the word with the highest translation probability from the IBM Model 1 matrix, out of the top `n` words we returned the one with the lowest Levenshtein edit distance. However, this too hurt our score, so we left it commented out.
+
+- greater weight on the `NULL` word.
 
 ## Spanish-specific challenges
 *A comment on the language F that you chose. You should make a brief statement of particular challenges in translating your choice of F language to English (relative to other possible choices for F), and key insights about the language that you made use of in your strategies to improve your baseline MT system.*

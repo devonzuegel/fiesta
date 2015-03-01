@@ -1,15 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import getopt
-import os
-import math
-import collections
-import copy
-import re
+import sys, getopt, os, math, collections, copy, re, nltk
 from datetime import datetime
 from bisect import bisect_left
-import nltk
 from nltk.tag import pos_tag
 from IBMModel1 import M1
 
