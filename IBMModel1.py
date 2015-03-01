@@ -89,7 +89,7 @@ class M1:
       adjusted_probs[i] /= self.get_unigram_probability(self.en_vocab[i])
     i_of_max = np.argmax(adjusted_probs)
 
-    ## Makes the score worse, so take it out for now. :(
+    ## TODO: Makes the score worse, so take it out for now. :(
     # return self.word_with_lowest_edit_dist(sp_word, adjusted_probs)
 
     return self.en_vocab[i_of_max]  # Top English translation for sp_word

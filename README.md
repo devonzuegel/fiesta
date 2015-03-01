@@ -1,119 +1,63 @@
-# Fiesta: README
+# Fiesta: A Spanish to English Translator
 
-[Zoe Robert](mailto:zrobert7@stanford.edu), [Devon Zuegel](mailto:devonz@cs.stanford.edu), and [John Luttig](mailto:jluttig@stanford.edu)
+[Devon Zuegel](mailto:devonz@cs.stanford.edu), [Zoe Robert](mailto:zrobert7@stanford.edu), and [John Luttig](mailto:jluttig@stanford.edu) &nbsp; // &nbsp; February 2015
 
+## Overview
+Fiesta is based on the IBM Model 1 Expectation Maximation algorithm and implements several Spanish-specific strategies for improving word ordering within the English translations that result from the IBM M1 algorithm.
 
-## IBM Model 1
-- A **statistical alignment** algorithm
-- We're looking for the most likely English word for a Spanish word (e.g. "dog") based off our knowledge of co-occurrences within sentences.
-
-
-The general IBM Model 1 generative story for how we generate a Spanish sentence from an English sentence `E = e1,e2,...,ei` of length `i`:
-1. Choose a length `j` for the Spanish sentence, henceforth `F = f1, f2,..., fj`.
-2. Now choose an alignment `A = a_1,a_2, ... ,a_j` between the English and Spanish
-sentences.
-3. Now for each position `j` in the Spanish sentence, choose a Spanish word `fj` by translating the English word that is aligned to it.
-
-Further information on p. 880 of the textbook.
-
+### Running Fiesta
+To generate the translation probabilities, translate a given `.es` file, and evaluate the resulting translations, run the following command:
 ```
-# Values for english within spanish word must sum to 1.0
-# TODO: might be the other way aroundd!!!
-{
-  'Yo': {
-    'I': .3
-    'have': .4
-    'dog': .3
-  }
-  'tengo': {
-    'I': .3
-    'have': .4
-    'dog': .3
-  }
-  'perro': {
-    'I': .3
-    'have': .4
-    'dog': .3
-  }
-}
+$ python translate.py PATH_TO_FILE FILENAME
 ```
 
----
-
-## To Do
-
-### Programming
-
-- [x] implement IBM Model 1 on `train/` folder (Zoe, Tuesday/Wednesday)
-- [x] fix ascii-unicode-latin1 encoding issues (Devon, Tuesday night)
-- [x] implement caching with pickle in `transl_probs.pickle` (Devon, Wednesday night)
-- [x] multiple iterations
-- [x] self.sp_word_indices dictionary instead of binary search
-- [x] optimize algorithm ( @luttigdev )
-  - [ ] just reset at each iteration or completely recreate? (applies to multiple data structures)
-- [x] lowercase? DOESN'T MATTER
-- [x] **implement evaluation/run-through for `dev/` folder through Bleu ASAP**
-- [x] Viterbi + nltk (parts of speech tagging » reordering Sp-Eng verbs for exmaple)
-  - didn't help much :(
-  - NOTE: can't tag single English words because not enough context
-
-- [ ] add english language model (single-word probabilities) (Zoe, Thursday)
-  - [ ] bigrams
-    - translating 2 words ??
-- [ ] decide new priorities once we get Bleu working
-- [ ] conjugations in Spanish indicate subject ("Tengo" == "Yo tengo") ... deal with this!
-
-### Questions
-- [ ] logs
-- [x] COGNATES (not a good idea)
-
-## Misc
-- [ ] shouldn't remove commas from translation...
-- [x] Shouldn't remove &quot; and similar thingies
-  - seems to remove spaces around it still
-
-
-### Report
-- [ ] all the things
-
----
-
-## Pseudocode
-
-```python
-initialize transl_prob(e|f) uniformly
-do until convergence
-  set count(e|f) to 0 for all e,f
-  set total_s(f) to 0 for all f
-  for all sentence pairs (en_sentence, sp_sentence)
-    set total_e(e) = 0 for all e
-    for all words e in en_sentence
-      for all words f in sp_sentence
-        total_e(e) += transl_prob(e|f)
-    for all words e in en_sentence
-      for all words f in sp_sentence
-        count(e|f) += transl_prob(e|f) / total_e(e)
-        total_s(f)   += transl_prob(e|f) / total_e(e)
-  for all f
-    for all e
-      transl_prob(e|f) = count(e|f) / total_s(f)
+The first arg is the path to the file you wish to translate, and the second is the name of the `.es` file *without its extension*. For example, to run the program over the test set:
+```
+$ python translate.py ./es-en/test/ newstest2013
 ```
 
+### IBM Model 1
+IBM Model 1 is an **expectation-maximization statistical alignment algorithm**. Given known pairings of Spanish and English sentences, it generates a matrix of probabilities whose rows correspond to the Spanish vocabulary and columns correspond to the English vocabulary. The value at any given cell in the matrix represents the probability that those two words have co-occurred within translations of each other. This table is then used to estimate a model for future translations.
 
-# Useful resources & links
-- [Pseudocode](http://www.ims.uni-stuttgart.de/institut/mitarbeiter/fraser/readinggroup/model1.html)
-- [An implementation](https://github.com/kylebgorman/model1/blob/master/m1.py)
-- [p. 880 of the textbook](https://web.stanford.edu/class/cs124/restricted/ed2mt.pdf)
+In short, IBM Model 1 looks for the most likely English word for a Spanish word (e.g. "dog") based off our knowledge of co-occurrences within sentences. As such, if there are no translations of a given Spanish word `s` that contain a given English word `e`, the value of the cell at the corresponding row and column will be `0`.
 
+The algorithm requires 3 components:
 
-## Expectation-Maximization Statistical Machine Translation (EM Statistical MT)
-Requires 3 components:
 - a language model to compute `P(E)` (the prior)
-- a translation model to compute `P(S|E)` ()
+- a translation model to compute `P(S|E)` (the probability that a Spanish word `s` translates to an English word `e`)
 - a decoder that produces that most probable
 
 Further information on p. 876 of the textbook.
 
+#### Pseudocode
+```python
+initialize transl_prob(e|s) uniformly
+do until convergence
+  set count(e|s) to 0 for all e,s
+  set total_s(s) to 0 for all s
+  for all sentence pairs (en_sentence, sp_sentence)
+    set total_e(e) = 0 for all e
+    for all words e in en_sentence
+      for all words s in sp_sentence
+        total_e(e) += transl_prob(e|s)
+    for all words e in en_sentence
+      for all words s in sp_sentence
+        count(e|s) += transl_prob(e|s) / total_e(e)
+        total_s(s)   += transl_prob(e|s) / total_e(e)
+  for all s
+    for all e
+      transl_prob(e|s) = count(e|s) / total_s(s)
+```
+
+### Further strategies
+
+- part-of-speech tagging and reordering once back in English
+
+Things we tried that didn't seem to improve the translator:
+
+- built a bigram English-language model and then tried to extract the most likely permutation of the translated English "bag of words" with that model. Running through each permutation of every sentence took forever, so we were forced to take it out of the translator. We tried to think of better ways to go about extracting candidates from the permutations so we wouldn't have to run through so many, but after brainstorming and implementing several ideas it didn't seem to improve the model and remained immensely slow.
+
+- Instead of simply returning the word with the highest translation probability from the IBM Model 1 matrix, out of the top `n` words we returned the one with the lowest Levenshtein edit distance. However, this too hurt our score, so we left it commented out.
 
 ## Spanish-specific challenges
 *A comment on the language F that you chose. You should make a brief statement of particular challenges in translating your choice of F language to English (relative to other possible choices for F), and key insights about the language that you made use of in your strategies to improve your baseline MT system.*
@@ -129,10 +73,11 @@ union » union
 uniòn » uniOn
 ```
 - conjugations in Spanish indicate subject ("Tengo" == "Yo tengo")
+- word ordering is very lax in Spanish, difficult to extract ordering ... bigrams theoretically would help a lot.
 
 ## Our strategy to improve the baseline IBM Model 1 system
 *Your strategy to improve the baseline IBM model 1 system*
-- IBM Model 1 makes some major simplifying assumptions. One of the most egregious is the assumption that all align- ments are equally likely.
+IBM Model 1 makes some major simplifying assumptions. One of the worst is the assumption that all alignments are equally likely.
 
 ## Error analysis on the test set
 *Your error analysis on the test set, including specific reference to what your code does and ideas for how further work might fix your remaining errors.*
