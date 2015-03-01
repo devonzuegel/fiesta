@@ -1,15 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import getopt
-import os
-import math
-import collections
-import copy
-import re
+import sys, getopt, os, math, collections, copy, re, nltk, itertools
 from datetime import datetime
 from bisect import bisect_left
-import nltk
 from nltk.tag import pos_tag
 from IBMModel1 import M1
 
@@ -48,7 +41,6 @@ def main(filename):
   # Opens file into which will dump our translations line-by-line.
   translns_file = open('%s_translations' % filename, 'w')
 
-  
   ##
   # Asks user if they only want to use basic IBM Model 1 or also use noun-adj
   # flipping + bigram ordering to refine their results.
@@ -95,25 +87,47 @@ def tokenize_sp_stemmed(sp_sentence):
 def translate_sentence(sp_sentence, m1, translns_file, goal_transln, just_ibm_m1):
   if PRINT_MSGS: print '\nSpanish:  %s' % sp_sentence.replace('\n', '')
 
-  en_translation = ''
+  en_transln = ''
 
   for sp_word in sp_sentence:
     sp_word = tokenize_sp_stemmed(sp_word.encode('utf-8'))
 
     if sp_word not in m1.sp_vocab and sp_word not in SP_PUNCTN:
-      en_translation += '%s ' % sp_word     # TODO: this part is super bad
+      en_transln += '%s ' % sp_word     # TODO: this part is super bad
+    # elif sp_word.lower() != 'null':
+    # elif sp_word.lower() == 'null':
+    #   en_transln 
     else:
-      en_translation += '%s ' % m1.top_english_word(sp_word)
+      en_transln += '%s ' % m1.top_english_word(sp_word)
 
   if not just_ibm_m1:
-    en_translation = order_sentence(en_translation.encode('utf-8'))
+    en_transln = flip_nouns_adjs(en_transln)
+    # en_transln = order_sentence(en_transln.encode('utf-8'), m1)
   
-  translns_file.write(en_translation + '\n')
-  if PRINT_MSGS: print 'English:  %s' % en_translation
+  translns_file.write(en_transln + '\n')
+  if PRINT_MSGS: print 'English:  %s' % en_transln
   if PRINT_MSGS: print '   Goal:  %s' % goal_transln
 
-def order_sentence(en_translation):
-  return flip_nouns_adjs(en_translation)
+def order_sentence(en_transln, m1):
+  permutatns = [x for x in itertools.permutations(en_transln.split())]
+  
+  max_score = 0
+  for i in range(len(en_transln) - 1):
+    curr_word, next_word = en_transln[i], en_transln[i+1]
+    max_score += m1.en_bigram_counts['%s %s' % (curr_word, next_word)]
+  # print '\nmax_score (start):  %d' % max_score
+  best = en_transln
+  
+  for i in range(len(permutatns)/8):
+    perm = permutatns[i]
+    score = 0
+    for i in range(len(perm) - 1):
+      curr_word, next_word = perm[i], perm[i+1]
+      score += m1.en_bigram_counts['%s %s' % (curr_word, next_word)]
+    if score > max_score:
+      max_score = score
+      best = perm
+  return flip_nouns_adjs(en_transln)
 
 # For each adjective, if the prev word is a noun, flip the two.
 def flip_nouns_adjs(en_transln):
