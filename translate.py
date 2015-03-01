@@ -106,14 +106,28 @@ def translate_sentence(sp_sentence, m1, translns_file, goal_transln):
   if PRINT_MSGS: print '   Goal:  %s' % goal_transln
 
 
-def flip_nouns_adjs(en_translation):
+def flip_nouns_adjs(en_transln):
   # For each adjective
     # If the preceeding word is tagged as a noun
       # Flip the two
-  # Tokenizes `en_translation` then tags each token
-  # tagged = pos_tag(nltk.word_tokenize(en_translation.decode("utf-8")))
-  # print tagged
-  return en_translation
+  # Tokenizes `en_transln` then tags each token
+  tagged = pos_tag(nltk.word_tokenize(en_transln.decode("utf-8")))
+
+  for i in range(1, len(tagged)):
+    prev_tupl, curr_tupl = tagged[i-1], tagged[i]
+    prev_word, curr_word = prev_tupl[0].encode('utf-8'), curr_tupl[0].encode('utf-8')
+    prev_POS,  curr_POS  = prev_tupl[1], curr_tupl[1]
+
+    if curr_POS == 'JJ' and prev_POS == 'NN':
+      tagged[i-1] = curr_tupl
+      tagged[i] = prev_tupl
+    # if curr_POS == 'NN' and prev_POS == 'NN':
+    #   tagged[i-1] = curr_tupl
+    #   tagged[i] = prev_tupl
+
+  return ' '.join([t[0].encode('utf-8') for t in tagged])
+  # return en_transln
+
 
 if __name__ == "__main__":
   startTime = datetime.now()
