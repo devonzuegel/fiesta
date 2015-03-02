@@ -1,10 +1,46 @@
 # -*- coding: utf-8 -*-
 
-import sys, getopt, os, math, collections, copy, re, nltk
+import sys, getopt, os, math, collections, copy, codecs, re, nltk
 from datetime import datetime
 from bisect import bisect_left
 from nltk.tag import pos_tag
 from IBMModel1_2 import M1
+
+
+SPECIAL_CHARS = {
+  '\xc3\x81' : 'A',
+  '\xc3\x89' : 'E',
+  '\xc3\x8d' : 'I',
+  '\xc3\x91' : 'N',
+  '\xc3\x93' : 'O',
+  '\xc3\x9a' : 'U',
+  '\xc3\x9c' : 'U',
+  '\xc3\xa1' : 'A',
+  '\xc3\xa9' : 'E',
+  '\xc3\xad' : 'I',
+  '\xc3\xb1' : 'N',
+  '\xc3\xb3' : 'O',
+  '\xc3\xba' : 'U',
+  '\xc3\xbc' : 'U',
+  '\xc2\xbf' : '', # upside down question mark
+  '\xc2\xa1' : '', # upside down exclamation mark
+  '\n' : ''
+}
+
+
+def translate(sp_sentences):
+  print sp_sentences
+
+
+def get_lines_of_file(filepath):
+  f = codecs.open(filepath, encoding='utf-8')
+  lines = []
+  for line in f:
+    line = line.encode('utf-8').lower()
+    for ch in SPECIAL_CHARS:
+      line = line.replace(ch, SPECIAL_CHARS[ch])
+    lines.append(line.split())
+  return lines
 
 
 if __name__ == "__main__":
@@ -15,14 +51,18 @@ if __name__ == "__main__":
     print 'Aborting...'
   else:
     filepath_to_train = './es-en/train/test2'
-    filepath_to_translate = '%s%s' % (sys.argv[1], sys.argv[2])
+    PATH, FILENAME = sys.argv[1], sys.argv[2]
 
-    m1 = M1(filepath_to_train, 20)
-    
-  #   # Print bleu_score
-  #   bleu_cmd = 'python bleu_score.py %s%s.en %s_translations' % (path, filename, filename)
-  #   os.system(bleu_cmd)
+    # Get sp_sentences to translate out of file (no tokenizing)
+    sp_sentences = get_lines_of_file('%s%s.es' % (PATH, FILENAME))
+    # Get goal_sentences to compare translations to out of file (no tokenizing)
+    goal_translns = get_lines_of_file('%s%s.en' % (PATH, FILENAME))
+
+    m1 = M1(filepath_to_train, 2)
+    translate(sp_sentences)
+
+    # # Print bleu_score
+    # bleu_cmd = 'python bleu_score.py %s%s.en %s_translations' % (path, filename, filename)
+    # os.system(bleu_cmd)
     
   print '\n[ Time elapsed: ]   %s\n' % (str(datetime.now() - startTime))
-
-  
