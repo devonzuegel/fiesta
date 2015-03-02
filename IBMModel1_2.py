@@ -6,9 +6,7 @@ from bisect import bisect_left
 from web2py_utils import search
 from nltk.util import ngrams
 from collections import defaultdict
-UTF_SPECIAL_CHARS = {
-  '\xc2\xa1' : '',
-  '\xc2\xbf' : '',
+SPECIAL_CHARS = {
   '\xc3\x81' : 'A',
   '\xc3\x89' : 'E',
   '\xc3\x8d' : 'I',
@@ -41,20 +39,19 @@ def get_sentence_pairs(filepath):
 	en_file = '%s.en' % (filepath)
 
 	sp_lines = get_lines_of_file(sp_file)
-	print sp_lines
 	en_lines = get_lines_of_file(en_file)
 
 	n_lines = len(sp_lines) # also equal to len(en_lines)
 
 	aligned_sentences = [(sp_lines[i], en_lines[i]) for i in range(n_lines)]
-	# print aligned_sentences
+	print aligned_sentences
 
 def get_lines_of_file(filepath):
   f = codecs.open(filepath, encoding='utf-8')
   lines = []
   for line in f:
-  	line = line.encode('utf-8').lower().replace('\n', '')
-  	for utf8 in UTF_SPECIAL_CHARS:
-  		line = line.replace(utf8, UTF_SPECIAL_CHARS[utf8])
-  	lines.append(line)
+  	line = line.encode('utf-8').lower()
+  	for ch in SPECIAL_CHARS:
+  		line = line.replace(ch, SPECIAL_CHARS[ch])
+  	lines.append(line.split())
   return lines
