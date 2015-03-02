@@ -28,8 +28,8 @@ SPECIAL_CHARS = {
 }
 
 
-def translate(sp_sentences):
-  print sp_sentences
+def translate(sp_sentences, m1):
+  return sp_sentences
 
 
 def get_lines_of_file(filepath):
@@ -59,7 +59,12 @@ if __name__ == "__main__":
     goal_translns = get_lines_of_file('%s%s.en' % (PATH, FILENAME))
 
     m1 = M1(filepath_to_train, 2)
-    translate(sp_sentences)
+    translated_sentences = translate(sp_sentences, m1)
+
+    for i in range(len(sp_sentences)):
+      print ''
+      print sp_sentences[i]
+      print translated_sentences[i]
 
     # # Print bleu_score
     # bleu_cmd = 'python bleu_score.py %s%s.en %s_translations' % (path, filename, filename)
