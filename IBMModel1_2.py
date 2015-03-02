@@ -31,9 +31,19 @@ SPECIAL_CHARS = {
 class Model1(object):
 	def __init__(self, filepath, n_iterations):
 		sentence_pairs = get_sentence_pairs(filepath)
-		print sentence_pairs
-		# self.probabilities = self.train()
-		
+		self.probabilities = self.train(sentence_pairs, n_iterations)
+
+
+	def train(self, sentence_pairs, n_iterations):
+		vocabs = extract_vocabs(sentence_pairs)
+		print vocabs[1]
+
+def extract_vocabs(sentence_pairs):
+	sp_vocab, en_vocab = set([]), set([])
+	for sp_line, en_line in sentence_pairs:
+		sp_vocab |= set(sp_line)
+		en_vocab |= set(en_line)
+	return (sorted(sp_vocab), sorted(en_vocab))
 
 def get_sentence_pairs(filepath):
 	sp_file = '%s.es' % (filepath)
