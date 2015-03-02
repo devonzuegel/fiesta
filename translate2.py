@@ -10,7 +10,9 @@ from IBMModel1_2 import Model1
 
 if __name__ == "__main__":
   startTime = datetime.now()
-  model1 = Model1('./es-en/train/test2', 5)
+  filepath = './es-en/train/europarl-v7.es-en'
+  filepath = './es-en/train/test2'
+  model1 = Model1(filepath, 5)
   # if len(sys.argv) < 2:
   #   print 'Requires name of file to translate. Aborting...'
   # else:
@@ -22,6 +24,6 @@ if __name__ == "__main__":
   #   bleu_cmd = 'python bleu_score.py %s%s.en %s_translations' % (path, filename, filename)
   #   os.system(bleu_cmd)
     
-  #   print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
+  print '\n[ Time elapsed: ]   %s\n' % (str(datetime.now() - startTime))
 
   
