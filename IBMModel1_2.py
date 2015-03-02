@@ -6,6 +6,27 @@ from bisect import bisect_left
 from web2py_utils import search
 from nltk.util import ngrams
 from collections import defaultdict
+UTF_SPECIAL_CHARS = {
+  '\xc2\xa1' : '',
+  '\xc2\xbf' : '',
+  '\xc3\x81' : 'A',
+  '\xc3\x89' : 'E',
+  '\xc3\x8d' : 'I',
+  '\xc3\x91' : 'N',
+  '\xc3\x93' : 'O',
+  '\xc3\x9a' : 'U',
+  '\xc3\x9c' : 'U',
+  '\xc3\xa1' : 'A',
+  '\xc3\xa9' : 'E',
+  '\xc3\xad' : 'I',
+  '\xc3\xb1' : 'N',
+  '\xc3\xb3' : 'O',
+  '\xc3\xba' : 'U',
+  '\xc3\xbc' : 'U',
+  '\xc2\xbf' : '', # upside down question mark
+  '\xc2\xa1' : '', # upside down exclamation mark
+  '\n' : ''
+}
 
 ##
 # This class implements the IBM Model 1 algorithm of Expectation Maximization.
@@ -30,6 +51,10 @@ def get_sentence_pairs(filepath):
 
 def get_lines_of_file(filepath):
   f = codecs.open(filepath, encoding='utf-8')
+  lines = []
   for line in f:
-  	print line.encode('utf-8')
-  return [line.encode('utf-8') for line in f]
+  	line = line.encode('utf-8').lower().replace('\n', '')
+  	for utf8 in UTF_SPECIAL_CHARS:
+  		line = line.replace(utf8, UTF_SPECIAL_CHARS[utf8])
+  	lines.append(line)
+  return lines
