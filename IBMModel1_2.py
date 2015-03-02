@@ -45,7 +45,6 @@ class M1(object):
 		# Trains alignment probabilities for each possible Sp-En pairing.
 		self.probabilities = self.train(sentence_pairs, vocabs, vocab_indices, n_iterations)
 
-
 	def train(self, sentence_pairs, vocabs, vocab_indices, n_iterations):
 		init_prob = 1.0/len(vocabs['en'])
 		probabilities = defaultdict(lambda: defaultdict(lambda: init_prob))
