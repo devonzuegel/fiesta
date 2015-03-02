@@ -31,6 +31,7 @@ SPECIAL_CHARS = {
 class Model1(object):
 	def __init__(self, filepath, n_iterations):
 		sentence_pairs = get_sentence_pairs(filepath)
+		print sentence_pairs
 		# self.probabilities = self.train()
 		
 
@@ -43,8 +44,7 @@ def get_sentence_pairs(filepath):
 
 	n_lines = len(sp_lines) # also equal to len(en_lines)
 
-	aligned_sentences = [(sp_lines[i], en_lines[i]) for i in range(n_lines)]
-	print aligned_sentences
+	return [(sp_lines[i], en_lines[i]) for i in range(n_lines)]
 
 def get_lines_of_file(filepath):
   f = codecs.open(filepath, encoding='utf-8')
