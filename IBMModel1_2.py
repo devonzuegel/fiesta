@@ -35,6 +35,9 @@ class Model1(object):
 
 
 	def train(self, sentence_pairs, n_iterations):
+		##
+		# `vocabs` is a tuple: 1st element is a sorted Spanish vocab list, and
+		# 										 2nd element is a sorted English vocab list
 		vocabs = extract_vocabs(sentence_pairs)
 		print vocabs[1]
 
@@ -43,6 +46,7 @@ def extract_vocabs(sentence_pairs):
 	for sp_line, en_line in sentence_pairs:
 		sp_vocab |= set(sp_line)
 		en_vocab |= set(en_line)
+	sp_vocab += None
 	return (sorted(sp_vocab), sorted(en_vocab))
 
 def get_sentence_pairs(filepath):
