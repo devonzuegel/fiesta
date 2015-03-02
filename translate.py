@@ -95,7 +95,9 @@ def translate_sentence(sp_sentence, m1, translns_file, goal_transln, just_ibm_m1
     if (sp_word not in m1.sp_vocab) and (sp_word not in SP_PUNCTN):
       en_translation += '%s ' % sp_word     # TODO: this part is super bad
     else:
-      en_translation += '%s ' % m1.top_english_word(sp_word)
+      top_english_word = m1.top_english_word(sp_word)
+      if top_english_word != None:
+        en_translation += '%s ' % m1.top_english_word(sp_word)
 
   if not just_ibm_m1:
     en_translation = order_sentence(en_translation.encode('utf-8'))
