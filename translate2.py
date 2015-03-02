@@ -36,7 +36,7 @@ def translate(sp_sentences, m1):
 
     for sp_word in sp_sentence:
       en_word = m1.max_prob_alignment(sp_word)
-      en_transln += '%s ' % (en_word)
+      if en_word is not None:  en_transln += '%s ' % (en_word)
 
     en_translns.append(en_transln)
     translns_file.write(en_transln + '\n')
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     print 'Usage:  $ python translate.py ./PATH/TO/FILE/ FILENAME'
     print 'Aborting...'
   else:
-    filepath_to_train = './es-en/train/test2'
+    filepath_to_train = './es-en/train/europarl-v7.es-en'
     PATH, FILENAME = sys.argv[1], sys.argv[2]
 
     # Get sp_sentences to translate out of file (no tokenizing)
@@ -69,11 +69,10 @@ if __name__ == "__main__":
     # Get goal_sentences to compare translations to out of file (no tokenizing)
     goal_translns = get_lines_of_file('%s%s.en' % (PATH, FILENAME))
 
+    # Initialize IBM Model 1 class.
     m1 = M1(filepath_to_train, 20)
     
     translate(sp_sentences, m1)
-    bleu_cmd = 'python bleu_score.py %s%s.en %s_translations' % (PATH, FILENAME, FILENAME)
-    os.system(bleu_cmd)
+    os.system('python bleu_score.py %s%s.en %s_translations' % (PATH, FILENAME, FILENAME))
 
-    
   print '\n[ Time elapsed: ]   %s\n' % (str(datetime.now() - startTime))

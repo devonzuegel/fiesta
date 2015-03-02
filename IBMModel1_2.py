@@ -37,6 +37,8 @@ class M1(object):
 		# vocabs['en'] = alphabetical English vocab list
 		self.vocabs = extract_vocabs(sentence_pairs)
 
+		self.en_unigram_counts = get_unigram_counts([p[1] for p in sentence_pairs])
+
 		##
 		# self.vocab_indices['sp'] = maps words to their indices in vocabs['sp']
 		# self.vocab_indices['en'] = maps words to their indices in vocabs['en']
@@ -58,6 +60,7 @@ class M1(object):
 
 			for sp_tokens, en_tokens in sentence_pairs:
 				sp_tokens = [ None ] + sp_tokens  # Prepend `None` to Spanish sentence list
+				en_tokens = [ None ] + en_tokens  # Prepend `None` to English sentence list
 				total_en = [0] * len(vocabs['en'])
 
 				# Normalize P(a,S|E) values to yield P(a|E,F) values.
@@ -78,19 +81,23 @@ class M1(object):
 
 
 	def max_prob_alignment(self, sp_word):
+		# If the word isn't in our Spanish vocabulary (and thus doesn't have
+		# a row in the translation probabilities matrix), simply return itself.
+		if sp_word not in self.vocabs['sp']: 	return sp_word
+
 		sp_word_i = self.vocab_indices['sp'][sp_word]
-		en_candidates = self.probabilities[sp_word_i]
+		en_candidates = copy.deepcopy(self.probabilities[sp_word_i])
+
+		##
+		# Scale prob for each word by its frequency.
+		for en_word in en_candidates:
+			en_candidates[en_word] = en_candidates[en_word] * self.en_unigram_counts[en_word]
 
 		# Get index of max probability of the English word candidates.
 		i_of_max = np.argmax(en_candidates)
 
-		# 
+		# Return the highest probability English candidate.
 		return self.vocabs['en'][i_of_max]
-
-
-    # for i in range(len(adjusted_probs)):
-    #   adjusted_probs[i] /= self.get_unigram_probability(self.en_vocab[i])
-    # i_of_max = np.argmax(adjusted_probs)
 
 
 	def normalize(self, total_en, en_tokens, sp_tokens, probabilities):
@@ -119,6 +126,14 @@ def extract_vocabs(sentence_pairs):
 
 	sp_vocab.add(None)  # Add null token to the Spanish vocab
 	return {  'sp': sorted(sp_vocab),  'en': sorted(en_vocab)  }
+
+
+def get_unigram_counts(sentences):
+	counts = defaultdict(lambda: 0)
+	for sentence in sentences:
+		for word in sentence:
+			counts[word] += 1
+	return counts
 
 
 def extract_vocab_indices(vocabs):
