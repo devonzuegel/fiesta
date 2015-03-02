@@ -4,21 +4,20 @@ import sys, getopt, os, math, collections, copy, re, nltk
 from datetime import datetime
 from bisect import bisect_left
 from nltk.tag import pos_tag
-from IBMModel1 import M1
-from IBMModel1_2 import Model1
+from IBMModel1_2 import M1
 
 
 if __name__ == "__main__":
   startTime = datetime.now()
-  filepath = './es-en/train/europarl-v7.es-en'
-  filepath = './es-en/train/test2'
-  model1 = Model1(filepath, 5)
-  # if len(sys.argv) < 2:
-  #   print 'Requires name of file to translate. Aborting...'
-  # else:
-  #   path = sys.argv[1]
-  #   filename = sys.argv[2]
-  #   main(path, filename)
+  if len(sys.argv) < 2:
+    print '\nRequires the path to and name of file (without .en/.es extension) to translate:'
+    print 'Usage:  $ python translate.py ./PATH/TO/FILE/ FILENAME'
+    print 'Aborting...'
+  else:
+    filepath_to_train = './es-en/train/test2'
+    filepath_to_translate = '%s%s' % (sys.argv[1], sys.argv[2])
+
+    m1 = M1(filepath_to_train, 20)
     
   #   # Print bleu_score
   #   bleu_cmd = 'python bleu_score.py %s%s.en %s_translations' % (path, filename, filename)

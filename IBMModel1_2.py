@@ -28,7 +28,7 @@ SPECIAL_CHARS = {
 
 ##
 # This class implements the IBM Model 1 algorithm of Expectation Maximization.
-class Model1(object):
+class M1(object):
 	def __init__(self, filepath, n_iterations):
 		sentence_pairs = get_sentence_pairs(filepath)
 
@@ -52,13 +52,34 @@ class Model1(object):
 		total_en = {  en_word:0 for en_word in vocabs['en']  }
 
 		for i in range(0, n_iterations):
-			counts = defaultdict(lambda: defaultdict(lambda: 0.0))
+			print '=== Iteration %d/%d' % (i, n_iterations)
+	
+			fractnl_counts = defaultdict(lambda: defaultdict(lambda: 0.0))
 			total_sp = defaultdict(lambda: 0.0)
 
 			for sp_tokens, en_tokens in sentence_pairs:
 				sp_tokens = [None] + sp_tokens  # Prepend `None` to Spanish sentence list
 
+				# Normalize P(a,S|E) values to yield P(a|E,F) values.
 				total_en = normalize(total_en, en_tokens, sp_tokens, probabilities)
+
+				# Collect fractional counts.
+				for en_word in en_tokens:
+					for sp_word in sp_tokens:
+						count = probabilities[en_word][sp_word] / total_en[en_word]
+						fractnl_counts[en_word][sp_word] += count
+						total_sp[sp_word] += count
+
+			probabilities = estimate_probs(probabilities, vocabs, total_sp)
+	
+		return probabilities
+
+
+def estimate_probs(probabilities, vocabs, total_sp):
+	for s in vocabs['sp']:
+		for e in vocabs['en']:
+			probabilities[e][s] = 0 if (total_sp[s] == 0) else probabilities[e][s] / total_sp[s]
+	return probabilities
 
 def normalize(total_en, en_tokens, sp_tokens, probabilities):
 	for en_word in en_tokens:
@@ -66,6 +87,7 @@ def normalize(total_en, en_tokens, sp_tokens, probabilities):
 		for sp_word in sp_tokens:
 			total_en[en_word] += probabilities[en_word][sp_word]
 	return total_en
+
 
 def extract_vocabs(sentence_pairs):
 	sp_vocab, en_vocab = set([]), set([])
