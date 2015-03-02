@@ -29,31 +29,18 @@ SPECIAL_CHARS = {
 
 
 def translate(sp_sentences, m1):
+  translns_file = open('%s_translations' % FILENAME, 'w')
   en_translns = []
   for sp_sentence in sp_sentences:
     en_transln = ''
 
     for sp_word in sp_sentence:
-      # sp_word = tokenize_sp_stemmed(sp_word.encode('utf-8'))
       en_word = m1.max_prob_alignment(sp_word)
       en_transln += '%s ' % (en_word)
 
     en_translns.append(en_transln)
-
-    #   if (sp_word not in m1.sp_vocab) and (sp_word not in SP_PUNCTN):
-    #     en_transln += '%s ' % sp_word     # TODO: this part is super bad
-    #   else:
-    #     top_english_word = m1.top_english_word(sp_word)
-    #     if top_english_word != None:
-    #       en_transln += '%s ' % m1.top_english_word(sp_word)
-
-    # if not just_ibm_m1:
-    #   en_transln = order_sentence(en_transln.encode('utf-8'))
-    
-    # translns_file.write(en_transln + '\n')
-
-  print en_translns
-  return en_translns
+    translns_file.write(en_transln + '\n')
+  translns_file.close()
 
 
 def get_lines_of_file(filepath):
@@ -82,16 +69,11 @@ if __name__ == "__main__":
     # Get goal_sentences to compare translations to out of file (no tokenizing)
     goal_translns = get_lines_of_file('%s%s.en' % (PATH, FILENAME))
 
-    m1 = M1(filepath_to_train, 1)
-    translated_sentences = translate(sp_sentences, m1)
+    m1 = M1(filepath_to_train, 20)
+    
+    translate(sp_sentences, m1)
+    bleu_cmd = 'python bleu_score.py %s%s.en %s_translations' % (PATH, FILENAME, FILENAME)
+    os.system(bleu_cmd)
 
-    # for i in range(len(sp_sentences)):
-    #   print ''
-    #   print sp_sentences[i]
-    #   print translated_sentences[i]
-
-    # # Print bleu_score
-    # bleu_cmd = 'python bleu_score.py %s%s.en %s_translations' % (path, filename, filename)
-    # os.system(bleu_cmd)
     
   print '\n[ Time elapsed: ]   %s\n' % (str(datetime.now() - startTime))

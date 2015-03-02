@@ -35,48 +35,44 @@ class M1(object):
 		##
 		# vocabs['sp'] = alphabetical Spanish vocab list
 		# vocabs['en'] = alphabetical English vocab list
-		vocabs = extract_vocabs(sentence_pairs)
+		self.vocabs = extract_vocabs(sentence_pairs)
 
 		##
 		# self.vocab_indices['sp'] = maps words to their indices in vocabs['sp']
 		# self.vocab_indices['en'] = maps words to their indices in vocabs['en']
-		self.vocab_indices = extract_vocab_indices(vocabs)
+		self.vocab_indices = extract_vocab_indices(self.vocabs)
 
 		# Trains alignment probabilities for each possible Sp-En pairing.
-		self.probabilities = self.train(sentence_pairs, vocabs, n_iterations)
+		self.probabilities = self.train(sentence_pairs, self.vocabs, n_iterations)
 
 	def train(self, sentence_pairs, vocabs, n_iterations):
 		init_prob = 1 / (len(vocabs['en']) * 1.0)
-		probabilities = init_prob * np.ones( (len(vocabs['sp']), len(vocabs['en'])) )
+		probabilities = np.ones( (len(vocabs['sp']), len(vocabs['en'])) ) * init_prob
 		total_en = {  en_word: 0 for en_word in vocabs['en']  }
 
 		for i in range(0, n_iterations):
-			print '=== Iteration %d/%d' % (i, n_iterations)
+			print '\n=== Iteration %d/%d' % (i+1, n_iterations)
 	
-			fractnl_counts = defaultdict(lambda: defaultdict(lambda: 0.0))
-			total_sp = defaultdict(lambda: 0.0)
+			fractnl_counts = np.zeros((len(vocabs['sp']), len(vocabs['en'])))
+			total_sp = [0] * len(vocabs['sp'])
 
 			for sp_tokens, en_tokens in sentence_pairs:
 				sp_tokens = [ None ] + sp_tokens  # Prepend `None` to Spanish sentence list
+				total_en = [0] * len(vocabs['en'])
 
 				# Normalize P(a,S|E) values to yield P(a|E,F) values.
 				total_en = self.normalize(total_en, en_tokens, sp_tokens, probabilities)
 
-				# Collect fractional counts.
 				for en_word in en_tokens:
+					en_word_i = self.vocab_indices['en'][en_word]
 					for sp_word in sp_tokens:
 						sp_word_i = self.vocab_indices['sp'][sp_word]
-						en_word_i = self.vocab_indices['en'][en_word]
+						additnl_prob = probabilities[sp_word_i][en_word_i] / (total_en[en_word_i] * 1.0)
+						fractnl_counts[sp_word_i][en_word_i] += additnl_prob
+						total_sp += additnl_prob
 
-						count = (probabilities[sp_word_i][en_word_i] * 1.0) / total_en[en_word]
-						fractnl_counts[sp_word][en_word] += count
-						total_sp[sp_word] += count
-
-			probabilities = estimate_probs(probabilities, vocabs, total_sp)
-	
-		# print probabilities['hola']['spending']
-		# print probabilities['hola']['union']		
-		# print ''
+			total_sp_reshaped = np.asarray(total_sp).reshape(len(total_sp), 1)
+			probabilities = fractnl_counts / (total_sp_reshaped * 1.0)
 
 		return probabilities
 
@@ -85,14 +81,11 @@ class M1(object):
 		sp_word_i = self.vocab_indices['sp'][sp_word]
 		en_candidates = self.probabilities[sp_word_i]
 
-		max_prob_alignmt = (None, 0)
-		print 'en_candidates["spending"]: %f' % en_candidates[self.vocab_indices['en']['spending']]
-		print 'en_candidates["union"]:    %f' % en_candidates[self.vocab_indices['en']['union']]
-		print ''
-
-		print en_candidates
+		# Get index of max probability of the English word candidates.
 		i_of_max = np.argmax(en_candidates)
-		return i_of_max
+
+		# 
+		return self.vocabs['en'][i_of_max]
 
 
     # for i in range(len(adjusted_probs)):
@@ -102,21 +95,18 @@ class M1(object):
 
 	def normalize(self, total_en, en_tokens, sp_tokens, probabilities):
 		for en_word in en_tokens:
-			total_en[en_word] = 0.0
-		for en_word in en_tokens:
+			en_word_i = self.vocab_indices['en'][en_word]
 			for sp_word in sp_tokens:
-				en_word_i = self.vocab_indices['en'][en_word]
 				sp_word_i = self.vocab_indices['sp'][sp_word]
-				total_en[en_word] += probabilities[sp_word_i][en_word_i] * 1.0
-		# print total_en
+				total_en[en_word_i] += probabilities[sp_word_i][en_word_i]
 		return total_en
 
 
 def estimate_probs(probabilities, vocabs, total_sp):
 	for i,s in enumerate(vocabs['sp']):
 		for j,e in enumerate(vocabs['en']):
-			probabilities[i][j] = 0 if (total_sp[s] == 0) else probabilities[i][j] / (total_sp[s] * 1.0)
-	print probabilities
+			# print str(probabilities[i][j]) + ' ' + str(total_sp[i])
+			probabilities[i][j] = 0 if (total_sp[i] == 0) else probabilities[i][j] / (total_sp[i] * 1.0)
 	return probabilities
 
 
