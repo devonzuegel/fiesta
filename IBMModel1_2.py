@@ -38,17 +38,17 @@ class M1(object):
 		vocabs = extract_vocabs(sentence_pairs)
 
 		##
-		# vocab_indices['sp'] = maps words to their indices in vocabs['sp']
-		# vocab_indices['en'] = maps words to their indices in vocabs['en']
-		vocab_indices = extract_vocab_indices(vocabs)
+		# self.vocab_indices['sp'] = maps words to their indices in vocabs['sp']
+		# self.vocab_indices['en'] = maps words to their indices in vocabs['en']
+		self.vocab_indices = extract_vocab_indices(vocabs)
 
 		# Trains alignment probabilities for each possible Sp-En pairing.
-		self.probabilities = self.train(sentence_pairs, vocabs, vocab_indices, n_iterations)
+		self.probabilities = self.train(sentence_pairs, vocabs, n_iterations)
 
-	def train(self, sentence_pairs, vocabs, vocab_indices, n_iterations):
-		init_prob = 1.0/len(vocabs['en'])
-		probabilities = defaultdict(lambda: defaultdict(lambda: init_prob))
-		total_en = {  en_word:0 for en_word in vocabs['en']  }
+	def train(self, sentence_pairs, vocabs, n_iterations):
+		init_prob = 1 / (len(vocabs['en']) * 1.0)
+		probabilities = init_prob * np.ones( (len(vocabs['sp']), len(vocabs['en'])) )
+		total_en = {  en_word: 0 for en_word in vocabs['en']  }
 
 		for i in range(0, n_iterations):
 			print '=== Iteration %d/%d' % (i, n_iterations)
@@ -57,35 +57,68 @@ class M1(object):
 			total_sp = defaultdict(lambda: 0.0)
 
 			for sp_tokens, en_tokens in sentence_pairs:
-				sp_tokens = [None] + sp_tokens  # Prepend `None` to Spanish sentence list
+				sp_tokens = [ None ] + sp_tokens  # Prepend `None` to Spanish sentence list
 
 				# Normalize P(a,S|E) values to yield P(a|E,F) values.
-				total_en = normalize(total_en, en_tokens, sp_tokens, probabilities)
+				total_en = self.normalize(total_en, en_tokens, sp_tokens, probabilities)
 
 				# Collect fractional counts.
 				for en_word in en_tokens:
 					for sp_word in sp_tokens:
-						count = probabilities[en_word][sp_word] / total_en[en_word]
-						fractnl_counts[en_word][sp_word] += count
+						sp_word_i = self.vocab_indices['sp'][sp_word]
+						en_word_i = self.vocab_indices['en'][en_word]
+
+						count = (probabilities[sp_word_i][en_word_i] * 1.0) / total_en[en_word]
+						fractnl_counts[sp_word][en_word] += count
 						total_sp[sp_word] += count
 
 			probabilities = estimate_probs(probabilities, vocabs, total_sp)
 	
+		# print probabilities['hola']['spending']
+		# print probabilities['hola']['union']		
+		# print ''
+
 		return probabilities
 
 
+	def max_prob_alignment(self, sp_word):
+		sp_word_i = self.vocab_indices['sp'][sp_word]
+		en_candidates = self.probabilities[sp_word_i]
+
+		max_prob_alignmt = (None, 0)
+		print 'en_candidates["spending"]: %f' % en_candidates[self.vocab_indices['en']['spending']]
+		print 'en_candidates["union"]:    %f' % en_candidates[self.vocab_indices['en']['union']]
+		print ''
+
+		print en_candidates
+		i_of_max = np.argmax(en_candidates)
+		return i_of_max
+
+
+    # for i in range(len(adjusted_probs)):
+    #   adjusted_probs[i] /= self.get_unigram_probability(self.en_vocab[i])
+    # i_of_max = np.argmax(adjusted_probs)
+
+
+	def normalize(self, total_en, en_tokens, sp_tokens, probabilities):
+		for en_word in en_tokens:
+			total_en[en_word] = 0.0
+		for en_word in en_tokens:
+			for sp_word in sp_tokens:
+				en_word_i = self.vocab_indices['en'][en_word]
+				sp_word_i = self.vocab_indices['sp'][sp_word]
+				total_en[en_word] += probabilities[sp_word_i][en_word_i] * 1.0
+		# print total_en
+		return total_en
+
+
 def estimate_probs(probabilities, vocabs, total_sp):
-	for s in vocabs['sp']:
-		for e in vocabs['en']:
-			probabilities[e][s] = 0 if (total_sp[s] == 0) else probabilities[e][s] / total_sp[s]
+	for i,s in enumerate(vocabs['sp']):
+		for j,e in enumerate(vocabs['en']):
+			probabilities[i][j] = 0 if (total_sp[s] == 0) else probabilities[i][j] / (total_sp[s] * 1.0)
+	print probabilities
 	return probabilities
 
-def normalize(total_en, en_tokens, sp_tokens, probabilities):
-	for en_word in en_tokens:
-		total_en[en_word] = 0.0
-		for sp_word in sp_tokens:
-			total_en[en_word] += probabilities[en_word][sp_word]
-	return total_en
 
 
 def extract_vocabs(sentence_pairs):
