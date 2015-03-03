@@ -35,7 +35,7 @@ def translate_sentences(sp_sentences, m1):
 
     translate_sentence(sp_sentence, m1, translns_file)
     
-    if (i+1)%50 == 0:   
+    if (i+1)%200 == 0:   
       print '   %d of %d sentences translated' % (i+1, len(sp_sentences))
   
   print '\n== ... Done translating!\n'
