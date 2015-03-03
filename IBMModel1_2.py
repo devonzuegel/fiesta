@@ -25,7 +25,7 @@ SPECIAL_CHARS = {
   '\xc2\xa1' : '', # upside down exclamation mark
   '\n' : ''
 }
-
+USE_UNIGRAM_COUNTS = not True
 ##
 # This class implements the IBM Model 1 algorithm of Expectation Maximization.
 class M1(object):
@@ -39,7 +39,8 @@ class M1(object):
 		# vocabs['en'] = alphabetical English vocab list
 		self.vocabs = extract_vocabs(sentence_pairs)
 
-		self.en_unigram_counts = get_unigram_counts([p[1] for p in sentence_pairs])
+		if USE_UNIGRAM_COUNTS:
+			self.en_unigram_counts = get_unigram_counts([p[1] for p in sentence_pairs])
 
 		##
 		# self.vocab_indices['sp'] = maps words to their indices in vocabs['sp']
@@ -92,13 +93,14 @@ class M1(object):
 		sp_i = self.vocab_indices['sp'][sp_word]
 		en_candidates = self.probabilities[sp_i]
 
-		# en_candidates = copy.deepcopy(self.probabilities[sp_i])
-		##
-		# # Scale prob for each word by its frequency.
-		# for e in range(len(en_candidates)):
-		# 	en_word = self.vocabs['en'][e]
-		# 	en_candidates[e] = en_candidates[e] * self.en_unigram_counts[en_word]/10000.0
-		# 												# TODO: should multiply by probability
+		if USE_UNIGRAM_COUNTS:
+			en_candidates = copy.deepcopy(self.probabilities[sp_i])
+			#
+			# Scale prob for each word by its frequency.
+			for e in range(len(en_candidates)):
+				en_word = self.vocabs['en'][e]
+				en_candidates[e] = en_candidates[e] * self.en_unigram_counts[en_word]/10000.0
+															# TODO: should multiply by probability
 
 		# Get index of max probability of the English word candidates.
 		i_of_max = np.argmax(en_candidates)
