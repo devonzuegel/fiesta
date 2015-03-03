@@ -6,7 +6,6 @@ from bisect import bisect_left
 from nltk.tag import pos_tag
 from IBMModel1_2 import M1
 
-
 SPECIAL_CHARS = {
   '\xc3\x81' : 'A',
   '\xc3\x89' : 'E',
@@ -27,6 +26,7 @@ SPECIAL_CHARS = {
   '\n' : ''
 }
 
+USE_EXTENSIONS = True
 
 def translate_sentences(sp_sentences, m1):
   translns_file = open('%s_translations' % FILENAME, 'w')
