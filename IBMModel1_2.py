@@ -90,12 +90,15 @@ class M1(object):
 		if sp_word not in self.vocabs['sp']: 	return sp_word
 
 		sp_i = self.vocab_indices['sp'][sp_word]
-		en_candidates = copy.deepcopy(self.probabilities[sp_i])
+		en_candidates = self.probabilities[sp_i]
 
+		# en_candidates = copy.deepcopy(self.probabilities[sp_i])
 		##
-		# Scale prob for each word by its frequency.
-		for en_word in en_candidates:
-			en_candidates[en_word] = en_candidates[en_word] * self.en_unigram_counts[en_word]
+		# # Scale prob for each word by its frequency.
+		# for e in range(len(en_candidates)):
+		# 	en_word = self.vocabs['en'][e]
+		# 	en_candidates[e] = en_candidates[e] * self.en_unigram_counts[en_word]/10000.0
+		# 												# TODO: should multiply by probability
 
 		# Get index of max probability of the English word candidates.
 		i_of_max = np.argmax(en_candidates)
