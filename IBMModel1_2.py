@@ -60,7 +60,7 @@ class M1(object):
 
 			for sp_tokens, en_tokens in sentence_pairs:
 				sp_tokens = [ None ] + sp_tokens  # Prepend `None` to Spanish sentence list
-				en_tokens = [ None ] + en_tokens  # Prepend `None` to English sentence list
+				en_tokens = en_tokens  # Prepend `None` to English sentence list
 				total_en = [0] * len(vocabs['en'])
 
 				# Normalize P(a,S|E) values to yield P(a|E,F) values.

@@ -61,7 +61,7 @@ if __name__ == "__main__":
     print 'Usage:  $ python translate.py ./PATH/TO/FILE/ FILENAME'
     print 'Aborting...'
   else:
-    filepath_to_train = './es-en/train/europarl-v7.es-en'
+    filepath_to_train = './es-en/train/test2'
     PATH, FILENAME = sys.argv[1], sys.argv[2]
 
     # Get sp_sentences to translate out of file (no tokenizing)
