@@ -46,6 +46,13 @@ class M1(object):
 
 		# Trains alignment probabilities for each possible Sp-En pairing.
 		self.probabilities = self.train(sentence_pairs, self.vocabs, n_iterations)
+		
+		print_matrix(self.vocabs, self.probabilities)
+		# print '\n== Probabilities:'
+		# print self.probabilities
+		# print self.vocabs['sp']
+		# print self.vocabs['en']
+
 
 	def train(self, sentence_pairs, vocabs, n_iterations):
 		init_prob = 1 / (len(vocabs['en']) * 1.0)
@@ -59,7 +66,7 @@ class M1(object):
 			total_sp = [0] * len(vocabs['sp'])
 
 			for sp_tokens, en_tokens in sentence_pairs:
-				sp_tokens = [ None ] + sp_tokens  # Prepend `None` to Spanish sentence list
+				sp_tokens = sp_tokens# + [ None ]  # Prepend `None` to Spanish sentence list
 				en_tokens = en_tokens  # Prepend `None` to English sentence list
 				total_en = [0] * len(vocabs['en'])
 
@@ -124,7 +131,7 @@ def extract_vocabs(sentence_pairs):
 		sp_vocab |= set(sp_line)
 		en_vocab |= set(en_line)
 
-	sp_vocab.add(None)  # Add null token to the Spanish vocab
+	# sp_vocab.add(None)  # Add null token to the Spanish vocab
 	return {  'sp': sorted(sp_vocab),  'en': sorted(en_vocab)  }
 
 
@@ -153,6 +160,27 @@ def get_sentence_pairs(filepath):
 
 	return [(sp_lines[i], en_lines[i]) for i in range(n_lines)]
 
+
+def print_matrix(vocabs, probabilities):
+	column = '{:<%d}' % 10
+	lines = []
+	
+	# Build header row (English words, underlined).
+	headers = column.format('')
+	for e, en_word in enumerate(vocabs['en']):
+		headers += column.format(en_word)
+	lines += [headers]
+	lines += [column.format('') + '-------------------------------------']
+	
+	# Build each row (sp_word:  0.##  0.##  0.##  ...).
+	for s, sp_word in enumerate(vocabs['sp']):
+		row = ''
+		for prob in probabilities[s]:
+			row += column.format(round(prob, 4))
+		lines += [column.format(sp_word) + row]
+
+	# Print the table.
+	for l in lines:			print l
 
 def get_lines_of_file(filepath):
   f = codecs.open(filepath, encoding='utf-8')
