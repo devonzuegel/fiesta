@@ -2,14 +2,16 @@
 
 # Set these paths appropriately
 
-BIN=/Users/devonzuegel/Github/tree-tagger/bin
-CMD=/Users/devonzuegel/Github/tree-tagger/cmd
-LIB=/Users/devonzuegel/Github/tree-tagger/lib
+parentdir="$(dirname "$(pwd)")"/pa6-spanish-translation/
+
+BIN=${parentdir}tree-tagger/bin
+CMD=${parentdir}tree-tagger/cmd
+LIB=${parentdir}tree-tagger/lib
 
 OPTIONS="-token -lemma -sgml"
 
-TOKENIZER=${CMD}/utf8-tokenize.perl
-MWL=${CMD}/mwl-lookup.perl
+TOKENIZER=utf8-tokenize.perl
+MWL=mwl-lookup.perl
 TAGGER=${BIN}/tree-tagger
 ABBR_LIST=${LIB}/spanish-abbreviations
 PARFILE=${LIB}/spanish-utf8.par
