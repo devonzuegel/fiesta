@@ -65,7 +65,7 @@ if __name__ == "__main__":
     print 'Usage:  $ python translate.py ./PATH/TO/FILE/ FILENAME'
     print 'Aborting...'
   else:
-    filepath_to_train = './es-en/train/test0'
+    filepath_to_train = './es-en/train/' + raw_input('\n== Filename to train on? ')
     PATH, FILENAME = sys.argv[1], sys.argv[2]
 
     # Get sp_sentences to translate out of file (no tokenizing)
@@ -73,8 +73,9 @@ if __name__ == "__main__":
     # Get goal_sentences to compare translations to out of file (no tokenizing)
     goal_translns = get_lines_of_file('%s%s.en' % (PATH, FILENAME))
 
+    n_iterations = int(raw_input('\n== # of iterations? '))
     # Initialize IBM Model 1 class.
-    m1 = M1(filepath_to_train, 1)
+    m1 = M1(filepath_to_train, n_iterations)
     
     translate(sp_sentences, m1)
     os.system('python bleu_score.py %s%s.en %s_translations' % (PATH, FILENAME, FILENAME))
