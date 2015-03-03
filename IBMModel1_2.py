@@ -184,6 +184,7 @@ def print_matrix(vocabs, probabilities):
 	# Print the table.
 	for l in lines:			print l
 
+
 def get_lines_of_file(filepath):
   f = codecs.open(filepath, encoding='utf-8')
   lines = []
@@ -193,3 +194,4 @@ def get_lines_of_file(filepath):
   		line = line.replace(ch, SPECIAL_CHARS[ch])
   	lines.append(line.split())
   return lines
+
