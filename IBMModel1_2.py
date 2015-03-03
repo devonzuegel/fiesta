@@ -47,17 +47,13 @@ class M1(object):
 		# Trains alignment probabilities for each possible Sp-En pairing.
 		self.probabilities = self.train(sentence_pairs, self.vocabs, n_iterations)
 		
-		print_matrix(self.vocabs, self.probabilities)
-		# print '\n== Probabilities:'
-		# print self.probabilities
-		# print self.vocabs['sp']
-		# print self.vocabs['en']
+		# print_matrix(self.vocabs, self.probabilities)
 
 
 	def train(self, sentence_pairs, vocabs, n_iterations):
 		init_prob = 1 / (len(vocabs['en']) * 1.0)
 		probabilities = np.ones( (len(vocabs['sp']), len(vocabs['en'])) ) * init_prob
-		print_matrix(vocabs, probabilities)
+		# print_matrix(vocabs, probabilities)
 		for i in range(0, n_iterations):
 			print '\n=== Iteration %d/%d' % (i+1, n_iterations)
 	
@@ -65,9 +61,10 @@ class M1(object):
 			total = [0] * len(vocabs['sp'])
 
 			for sp_tokens, en_tokens in sentence_pairs:
-				# sp_tokens = sp_tokens# + [ None ]  # Prepend `None` to Spanish sentence list
+				sp_tokens = sp_tokens + [ None ]  # Prepend `None` to Spanish sentence list
 				# en_tokens = en_tokens  # Prepend `None` to English sentence list
 				total_sp = [0] * len(vocabs['en'])
+				
 				# Normalize P(a,S|E) values to yield P(a|E,F) values.
 				total_sp = self.normalize(total_sp, en_tokens, sp_tokens, probabilities)
 
@@ -117,7 +114,6 @@ class M1(object):
 def estimate_probs(probabilities, vocabs, total_sp):
 	for i,s in enumerate(vocabs['sp']):
 		for j,e in enumerate(vocabs['en']):
-			# print str(probabilities[i][j]) + ' ' + str(total_sp[i])
 			probabilities[i][j] = 0 if (total_sp[i] == 0) else probabilities[i][j] / (total_sp[i] * 1.0)
 	return probabilities
 
@@ -129,7 +125,7 @@ def extract_vocabs(sentence_pairs):
 		sp_vocab |= set(sp_line)
 		en_vocab |= set(en_line)
 
-	# sp_vocab.add(None)  # Add null token to the Spanish vocab
+	sp_vocab.add(None)  # Add null token to the Spanish vocab
 	return {  'sp': sorted(sp_vocab),  'en': sorted(en_vocab)  }
 
 

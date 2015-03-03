@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import sys, getopt, os, math, collections, copy, codecs, re, nltk
+import sys, getopt, os, math, collections, copy, codecs, re, nltk, string
 from datetime import datetime
 from bisect import bisect_left
 from nltk.tag import pos_tag
@@ -31,21 +31,20 @@ SPECIAL_CHARS = {
 def translate(sp_sentences, m1):
   translns_file = open('%s_translations' % FILENAME, 'w')
   en_translns = []
-  print '\n== English translations:'
+  print '\n== Translating to English...'
   for sp_sentence in sp_sentences:
     en_transln = ''
 
     for sp_word in sp_sentence:
       en_word = m1.max_prob_alignment(sp_word)
-      if en_word is not None:  
+      
+      if sp_word in string.punctuation:
+        en_transln += '%s ' % (sp_word)
+      elif en_word is not None:  
         en_transln += '%s ' % (en_word)
-
-    print en_transln
-    
 
     en_translns.append(en_transln)
     translns_file.write(en_transln + '\n')
-  print ''
   translns_file.close()
 
 
@@ -75,8 +74,8 @@ if __name__ == "__main__":
     # Get goal_sentences to compare translations to out of file (no tokenizing)
     goal_translns = get_lines_of_file('%s%s.en' % (PATH, FILENAME))
 
-    n_iterations = int(raw_input('\n== # of iterations? '))
     # Initialize IBM Model 1 class.
+    n_iterations = int(raw_input('\n== # of iterations? '))
     m1 = M1(filepath_to_train, n_iterations)
     
     translate(sp_sentences, m1)
