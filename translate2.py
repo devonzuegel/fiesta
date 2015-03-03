@@ -42,6 +42,19 @@ def translate_sentences(sp_sentences, m1):
   translns_file.close()
 
 
+##
+# Given a sentence string, returns a list of tuples containing 1: each word
+# and 2: its corresponding part-of-speech.
+def get_POS(s):
+  v = os.popen('echo "' + s + '" | tree-tagger/cmd/tree-tagger-spanish').read()
+  tagged = []
+  for line in v.split('\n'):
+    if line != '': 
+      parts = line.split()
+      tagged.append( (parts[0], parts[1]) )
+  return tagged
+
+
 def translate_sentence(sp_sentence, m1, translns_file):
   en_transln = ''
 
@@ -74,19 +87,20 @@ if __name__ == "__main__":
     print 'Usage:  $ python translate.py ./PATH/TO/FILE/ FILENAME'
     print 'Aborting...'
   else:
-    filepath_to_train = './es-en/train/' + raw_input('\n== Filename to train on? ')
-    PATH, FILENAME = sys.argv[1], sys.argv[2]
+    get_POS('Hola mi perro')
+    # filepath_to_train = './es-en/train/' + raw_input('\n== Filename to train on? ')
+    # PATH, FILENAME = sys.argv[1], sys.argv[2]
 
-    # Get sp_sentences to translate out of file (no tokenizing)
-    sp_sentences = get_lines_of_file('%s%s.es' % (PATH, FILENAME))
-    # Get goal_sentences to compare translations to out of file (no tokenizing)
-    goal_translns = get_lines_of_file('%s%s.en' % (PATH, FILENAME))
+    # # Get sp_sentences to translate out of file (no tokenizing)
+    # sp_sentences = get_lines_of_file('%s%s.es' % (PATH, FILENAME))
+    # # Get goal_sentences to compare translations to out of file (no tokenizing)
+    # goal_translns = get_lines_of_file('%s%s.en' % (PATH, FILENAME))
 
-    # Initialize IBM Model 1 class.
-    n_iterations = int(raw_input('\n== # of iterations? '))
-    m1 = M1(filepath_to_train, n_iterations)
+    # # Initialize IBM Model 1 class.
+    # n_iterations = int(raw_input('\n== # of iterations? '))
+    # m1 = M1(filepath_to_train, n_iterations)
     
-    translate_sentences(sp_sentences, m1)
-    os.system('python bleu_score.py %s%s.en %s_translations' % (PATH, FILENAME, FILENAME))
+    # translate_sentences(sp_sentences, m1)
+    # os.system('python bleu_score.py %s%s.en %s_translations' % (PATH, FILENAME, FILENAME))
 
   print '\n[ Time elapsed: ]   %s\n' % (str(datetime.now() - startTime))
