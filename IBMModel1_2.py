@@ -57,32 +57,30 @@ class M1(object):
 	def train(self, sentence_pairs, vocabs, n_iterations):
 		init_prob = 1 / (len(vocabs['en']) * 1.0)
 		probabilities = np.ones( (len(vocabs['sp']), len(vocabs['en'])) ) * init_prob
-		total_en = {  en_word: 0 for en_word in vocabs['en']  }
-
+		print_matrix(vocabs, probabilities)
 		for i in range(0, n_iterations):
 			print '\n=== Iteration %d/%d' % (i+1, n_iterations)
 	
 			fractnl_counts = np.zeros((len(vocabs['sp']), len(vocabs['en'])))
-			total_sp = [0] * len(vocabs['sp'])
+			total = [0] * len(vocabs['sp'])
 
 			for sp_tokens, en_tokens in sentence_pairs:
-				sp_tokens = sp_tokens# + [ None ]  # Prepend `None` to Spanish sentence list
-				en_tokens = en_tokens  # Prepend `None` to English sentence list
-				total_en = [0] * len(vocabs['en'])
-
+				# sp_tokens = sp_tokens# + [ None ]  # Prepend `None` to Spanish sentence list
+				# en_tokens = en_tokens  # Prepend `None` to English sentence list
+				total_sp = [0] * len(vocabs['en'])
 				# Normalize P(a,S|E) values to yield P(a|E,F) values.
-				total_en = self.normalize(total_en, en_tokens, sp_tokens, probabilities)
+				total_sp = self.normalize(total_sp, en_tokens, sp_tokens, probabilities)
 
 				for en_word in en_tokens:
-					en_word_i = self.vocab_indices['en'][en_word]
+					en_i = self.vocab_indices['en'][en_word]
 					for sp_word in sp_tokens:
-						sp_word_i = self.vocab_indices['sp'][sp_word]
-						additnl_prob = probabilities[sp_word_i][en_word_i] / (total_en[en_word_i] * 1.0)
-						fractnl_counts[sp_word_i][en_word_i] += additnl_prob
-						total_sp += additnl_prob
+						sp_i = self.vocab_indices['sp'][sp_word]
+						additnl_prob = probabilities[sp_i][en_i] / (total_sp[en_i] * 1.0)
+						fractnl_counts[sp_i][en_i] += additnl_prob
+						total[sp_i] += additnl_prob
 
-			total_sp_reshaped = np.asarray(total_sp).reshape(len(total_sp), 1)
-			probabilities = fractnl_counts / (total_sp_reshaped * 1.0)
+			total_reshaped = np.asarray(total).reshape(len(total), 1)
+			probabilities = fractnl_counts / (total_reshaped * 1.0)
 
 		return probabilities
 
@@ -92,8 +90,8 @@ class M1(object):
 		# a row in the translation probabilities matrix), simply return itself.
 		if sp_word not in self.vocabs['sp']: 	return sp_word
 
-		sp_word_i = self.vocab_indices['sp'][sp_word]
-		en_candidates = copy.deepcopy(self.probabilities[sp_word_i])
+		sp_i = self.vocab_indices['sp'][sp_word]
+		en_candidates = copy.deepcopy(self.probabilities[sp_i])
 
 		##
 		# Scale prob for each word by its frequency.
@@ -107,13 +105,13 @@ class M1(object):
 		return self.vocabs['en'][i_of_max]
 
 
-	def normalize(self, total_en, en_tokens, sp_tokens, probabilities):
+	def normalize(self, total_sp, en_tokens, sp_tokens, probabilities):
 		for en_word in en_tokens:
-			en_word_i = self.vocab_indices['en'][en_word]
+			en_i = self.vocab_indices['en'][en_word]
 			for sp_word in sp_tokens:
-				sp_word_i = self.vocab_indices['sp'][sp_word]
-				total_en[en_word_i] += probabilities[sp_word_i][en_word_i]
-		return total_en
+				sp_i = self.vocab_indices['sp'][sp_word]
+				total_sp[en_i] += probabilities[sp_i][en_i]
+		return total_sp
 
 
 def estimate_probs(probabilities, vocabs, total_sp):

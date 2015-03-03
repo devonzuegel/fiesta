@@ -41,9 +41,11 @@ def translate(sp_sentences, m1):
         en_transln += '%s ' % (en_word)
 
     print en_transln
+    
 
     en_translns.append(en_transln)
     translns_file.write(en_transln + '\n')
+  print ''
   translns_file.close()
 
 
