@@ -30,6 +30,8 @@ SPECIAL_CHARS = {
 # This class implements the IBM Model 1 algorithm of Expectation Maximization.
 class M1(object):
 	def __init__(self, filepath, n_iterations):
+		self.start_time = datetime.now()
+		print '\n===== Initializing IBM Model 1... [%s]' % str(self.start_time - self.start_time)
 		sentence_pairs = get_sentence_pairs(filepath)
 
 		##
@@ -55,7 +57,7 @@ class M1(object):
 		probabilities = np.ones( (len(vocabs['sp']), len(vocabs['en'])) ) * init_prob
 		# print_matrix(vocabs, probabilities)
 		for i in range(0, n_iterations):
-			print '\n=== Iteration %d/%d' % (i+1, n_iterations)
+			print '\n===== Iteration %d/%d... [%s]' % (i+1, n_iterations, str(datetime.now() - self.start_time))
 	
 			fractnl_counts = np.zeros((len(vocabs['sp']), len(vocabs['en'])))
 			total = [0] * len(vocabs['sp'])
@@ -156,18 +158,19 @@ def get_sentence_pairs(filepath):
 
 
 def print_matrix(vocabs, probabilities):
-	column = '{:<%d}' % 10
+	col_width = 10
+	column = '{:<%d}' % col_width
 	lines = []
 	
 	# Build header row (English words, underlined).
 	headers = column.format('')
-	for e, en_word in enumerate(reversed(vocabs['en'])):
+	for e, en_word in enumerate(vocabs['en']):
 		headers += column.format(en_word)
 	lines += [headers]
-	lines += [column.format('') + '-------------------------------------']
+	lines += [column.format('') + '-'*col_width*len(vocabs['en'])]
 	
 	# Build each row (sp_word:  0.##  0.##  0.##  ...).
-	for s, sp_word in enumerate(reversed(vocabs['sp'])):
+	for s, sp_word in enumerate(vocabs['sp']):
 		row = ''
 		for prob in probabilities[s]:
 			row += column.format(round(prob, 4))

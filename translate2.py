@@ -28,24 +28,32 @@ SPECIAL_CHARS = {
 }
 
 
-def translate(sp_sentences, m1):
+def translate_sentences(sp_sentences, m1):
   translns_file = open('%s_translations' % FILENAME, 'w')
-  en_translns = []
   print '\n== Translating to English...'
-  for sp_sentence in sp_sentences:
-    en_transln = ''
+  for i, sp_sentence in enumerate(sp_sentences):
 
-    for sp_word in sp_sentence:
-      en_word = m1.max_prob_alignment(sp_word)
-      
-      if sp_word in string.punctuation:
-        en_transln += '%s ' % (sp_word)
-      elif en_word is not None:  
-        en_transln += '%s ' % (en_word)
-
-    en_translns.append(en_transln)
-    translns_file.write(en_transln + '\n')
+    translate_sentence(sp_sentence, m1, translns_file)
+    
+    if (i+1)%20 == 0:   
+      print '   %d of %d sentences translated' % (i+1, len(sp_sentences))
+  
+  print '\n== ... Done translating!\n'
   translns_file.close()
+
+
+def translate_sentence(sp_sentence, m1, translns_file):
+  en_transln = ''
+
+  for sp_word in sp_sentence:
+    en_word = m1.max_prob_alignment(sp_word)
+    
+    if sp_word in string.punctuation:
+      en_transln += '%s ' % (sp_word)
+    elif en_word is not None:  
+      en_transln += '%s ' % (en_word)
+
+  translns_file.write(en_transln + '\n')
 
 
 def get_lines_of_file(filepath):
@@ -78,7 +86,7 @@ if __name__ == "__main__":
     n_iterations = int(raw_input('\n== # of iterations? '))
     m1 = M1(filepath_to_train, n_iterations)
     
-    translate(sp_sentences, m1)
+    translate_sentences(sp_sentences, m1)
     os.system('python bleu_score.py %s%s.en %s_translations' % (PATH, FILENAME, FILENAME))
 
   print '\n[ Time elapsed: ]   %s\n' % (str(datetime.now() - startTime))
