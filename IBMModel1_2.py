@@ -167,13 +167,13 @@ def print_matrix(vocabs, probabilities):
 	
 	# Build header row (English words, underlined).
 	headers = column.format('')
-	for e, en_word in enumerate(vocabs['en']):
+	for e, en_word in enumerate(reversed(vocabs['en'])):
 		headers += column.format(en_word)
 	lines += [headers]
 	lines += [column.format('') + '-------------------------------------']
 	
 	# Build each row (sp_word:  0.##  0.##  0.##  ...).
-	for s, sp_word in enumerate(vocabs['sp']):
+	for s, sp_word in enumerate(reversed(vocabs['sp'])):
 		row = ''
 		for prob in probabilities[s]:
 			row += column.format(round(prob, 4))
