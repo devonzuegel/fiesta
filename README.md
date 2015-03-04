@@ -15,8 +15,8 @@ We chose Spanish because of our relative backgrounds in Spanish compared to the 
 ##Statistical MT Scores
 Our most recent BLEU scores are as follows:
 ```
-BLEU-1: 45.33
-BLEU-2: 9.52
+BLEU-1 score: 49.539586
+BLEU-2 score: 10.110798
 ```
 ##Improvement upon baseline strategy
 1) Our first strategy to improve the baseline IBM mode 1 system was to improve its speed. We accomplished this using numpy instead of the nested lists and hashes that we had previously used. Once our speed was reasonable, we could perform tests quickly enough to implement complex algorithms. We started with Bigrams, since it was something we were familiar with from previous assignments. We also kept tabs on Piazza and Office Hours to sift through the optimization ideas to find the more successful algorithms.
@@ -50,6 +50,17 @@ The first arg is the path to the file you wish to translate, and the second is t
 ```
 $ python translate.py ./es-en/test/ newstest2013
 ```
+The program will then ask you for the name of the file on which you'd like to train the probabilities table. For example, to train over the `europarl` test set:
+```
+$ == Filename to train on? europarl-v7.es-en
+```
+Then, tell it the number of iterations you would like the algorithm to perform (in the following case, `20`):
+```
+$ == number of iterations? 20
+```
+The program may take up to 20 minutes to run on the full train+test sets. Then, it will output the BLUE-1 and BLUE-2 scores.
+
+
 ### IBM Model 1
 IBM Model 1 is an **expectation-maximization statistical alignment algorithm**. Given known pairings of Spanish and English sentences, it generates a matrix of probabilities whose rows correspond to the Spanish vocabulary and columns correspond to the English vocabulary. The value at any given cell in the matrix represents the probability that those two words have co-occurred within translations of each other. This table is then used to estimate a model for future translations.
 In short, IBM Model 1 looks for the most likely English word for a Spanish word (e.g. “dog”) based off our knowledge of co-occurrences within sentences. As such, if there are no translations of a given Spanish word `s` that contain a given English word `e`, the value of the cell at the corresponding row and column will be `0`.

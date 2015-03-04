@@ -66,6 +66,13 @@ def translate_sentence(sp_sentence, m1, translns_file):
     elif en_word is not None:  
       en_transln += '%s ' % (en_word)
 
+  if USE_EXTENSIONS en_transln:
+      en_transln = re.sub(
+        r'(.*) (.*?) of the (.*?) (.*)', 
+        r'\g<1> \g<3> \g<2> \g<4>', 
+        en_transln
+      )
+      
   translns_file.write(en_transln + '\n')
 
 

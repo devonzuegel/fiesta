@@ -125,7 +125,6 @@ def estimate_probs(probabilities, vocabs, total_sp):
 	return probabilities
 
 
-
 def extract_vocabs(sentence_pairs):
 	sp_vocab, en_vocab = set([]), set([])
 	for sp_line, en_line in sentence_pairs:
