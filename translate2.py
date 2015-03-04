@@ -100,9 +100,9 @@ def flip_nouns_and_adjs(sp_sentences):
       if is_noun(curr_pos) and is_adj(next_pos):
         curr_word, next_word = s[i], s[i+1]
         s[i], s[i+1] = next_word, curr_word
-    flipped_sentences.append(' '.join([tup[0] for tup in s]))
+    flipped_sentences.append([tup[0] for tup in s])
 
-  print flipped_sentences
+  return flipped_sentences
 
 
 if __name__ == "__main__":
@@ -112,13 +112,15 @@ if __name__ == "__main__":
     print 'Usage:  $ python translate.py ./PATH/TO/FILE/ FILENAME'
     print 'Aborting...'
   else:
-    get_POS('Hola mi perro')
     filepath_to_train = './es-en/train/' + raw_input('\n== Filename to train on? ')
     PATH, FILENAME = sys.argv[1], sys.argv[2]
 
     # Get sp_sentences to translate out of file (no tokenizing)
-    sp_sentences = get_lines_of_file('%s%s.es' % (PATH, FILENAME))
-    sp_sentences = flip_nouns_and_adjs(sp_sentences)
+    sp_sentences = get_lines_of_file('%s%s.es' % (PATH, FILENAME), not USE_EXTENSIONS)
+    
+    if USE_EXTENSIONS:
+      sp_sentences = flip_nouns_and_adjs(sp_sentences)
+
     # Get goal_sentences to compare translations to out of file (no tokenizing)
     goal_translns = get_lines_of_file('%s%s.en' % (PATH, FILENAME), True)
 
