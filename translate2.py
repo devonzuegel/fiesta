@@ -69,15 +69,40 @@ def translate_sentence(sp_sentence, m1, translns_file):
   translns_file.write(en_transln + '\n')
 
 
-def get_lines_of_file(filepath):
+def get_lines_of_file(filepath, SPLIT=False):
   f = codecs.open(filepath, encoding='utf-8')
   lines = []
   for line in f:
     line = line.encode('utf-8').lower()
     for ch in SPECIAL_CHARS:
       line = line.replace(ch, SPECIAL_CHARS[ch])
-    lines.append(line.split())
+    if SPLIT: lines.append(line.split())
+    else:     lines.append(line)
   return lines
+
+
+def is_noun(POS):
+  return POS == 'NN' or POS == 'NC' or POS == 'NP'
+
+
+def is_adj(POS):
+  return POS=='ADJ' or POS=='JJ'
+
+
+def flip_nouns_and_adjs(sp_sentences):
+
+  sp_sentences_tagged = [get_POS(s) for s in sp_sentences]
+
+  flipped_sentences = []
+  for s in sp_sentences_tagged:
+    for i in range(0, len(s) - 1):
+      curr_pos, next_pos = s[i][1], s[i+1][1]
+      if is_noun(curr_pos) and is_adj(next_pos):
+        curr_word, next_word = s[i], s[i+1]
+        s[i], s[i+1] = next_word, curr_word
+    flipped_sentences.append(' '.join([tup[0] for tup in s]))
+
+  print flipped_sentences
 
 
 if __name__ == "__main__":
@@ -93,8 +118,9 @@ if __name__ == "__main__":
 
     # Get sp_sentences to translate out of file (no tokenizing)
     sp_sentences = get_lines_of_file('%s%s.es' % (PATH, FILENAME))
+    sp_sentences = flip_nouns_and_adjs(sp_sentences)
     # Get goal_sentences to compare translations to out of file (no tokenizing)
-    goal_translns = get_lines_of_file('%s%s.en' % (PATH, FILENAME))
+    goal_translns = get_lines_of_file('%s%s.en' % (PATH, FILENAME), True)
 
     # Initialize IBM Model 1 class.
     n_iterations = int(raw_input('\n== # of iterations? '))

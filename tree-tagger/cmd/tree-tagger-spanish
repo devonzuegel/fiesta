@@ -2,11 +2,11 @@
 
 # Set these paths appropriately
 
-parentdir="$(dirname "$(pwd)")"/pa6-spanish-translation/
+parentdir="$(dirname "$(pwd)")"/pa6-spanish-translation
 
-BIN=${parentdir}tree-tagger/bin
-CMD=${parentdir}tree-tagger/cmd
-LIB=${parentdir}tree-tagger/lib
+BIN=${parentdir}/tree-tagger/bin
+CMD=${parentdir}/tree-tagger/cmd
+LIB=${parentdir}/tree-tagger/lib
 
 OPTIONS="-token -lemma -sgml"
 
