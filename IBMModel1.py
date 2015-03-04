@@ -1,263 +1,196 @@
 # -*- coding: utf-8 -*-
 
-import sys, getopt, os, math, collections, copy, re, numpy as np
+import sys, getopt, os, math, collections, copy, re, codecs, numpy as np
 from datetime import datetime
 from bisect import bisect_left
 from web2py_utils import search
 from nltk.util import ngrams
 from collections import defaultdict
-
-leve = search.Levenshtein()
-
-PATH_TO_TRAIN = './es-en/train/'
-# PATH_TO_DEV = './es-en/dev/'
-FILENAME = 'europarl-v7.es-en'
-FILENAME = 'test2'
-N_ITERATIONS = 20
-UTF_SPECIAL_CHARS = {
-  '\\xc2\\xa1' : '',
-  '\\xc2\\xbf' : '',
-  '\\xc3\\x81' : 'A',
-  '\\xc3\\x89' : 'E',
-  '\\xc3\\x8d' : 'I',
-  '\\xc3\\x91' : 'N',
-  '\\xc3\\x93' : 'O',
-  '\\xc3\\x9a' : 'U',
-  '\\xc3\\x9c' : 'U',
-  '\\xc3\\xa1' : 'A',
-  '\\xc3\\xa9' : 'E',
-  '\\xc3\\xad' : 'I',
-  '\\xc3\\xb1' : 'N',
-  '\\xc3\\xb3' : 'O',
-  '\\xc3\\xba' : 'U',
-  '\\xc3\\xbc' : 'U',
-  '\'' : '',
-  '\\n' : '',
+SPECIAL_CHARS = {
+  '\xc3\x81' : 'A',
+  '\xc3\x89' : 'E',
+  '\xc3\x8d' : 'I',
+  '\xc3\x91' : 'N',
+  '\xc3\x93' : 'O',
+  '\xc3\x9a' : 'U',
+  '\xc3\x9c' : 'U',
+  '\xc3\xa1' : 'A',
+  '\xc3\xa9' : 'E',
+  '\xc3\xad' : 'I',
+  '\xc3\xb1' : 'N',
+  '\xc3\xb3' : 'O',
+  '\xc3\xba' : 'U',
+  '\xc3\xbc' : 'U',
+  '\xc2\xbf' : '', # upside down question mark
+  '\xc2\xa1' : '', # upside down exclamation mark
+  '\n' : ''
 }
-USE_CACHE = True
-CACHE_FILE = 'transl_probs_cache'
-PRINT_MSGS = not True
-BUILD_BIGRAMS = not True
-
-class M1:
-
-  # IBM Model 1 initialization
-  def __init__(self):
-    sp_doc = get_lines_of_file('%s%s.es' % (PATH_TO_TRAIN, FILENAME))
-    en_doc = get_lines_of_file('%s%s.en' % (PATH_TO_TRAIN, FILENAME))
-    
-    sentence_pairs = self.deconstuct_sentences(sp_doc, en_doc)
-
-    self.build_vocab_indices()
-
-    user_input = raw_input('Use cached transl_probs? (y/n): ')
-    if user_input.lower() == 'y' and os.path.exists(CACHE_FILE):
-      print 'Loading transl_probs from cache...'
-      with open(CACHE_FILE, 'rb') as f:
-        self.transl_probs = np.loadtxt(CACHE_FILE)
-    else:
-      print 'Building transl_probs...'
-      self.transl_probs = self.train_transl_probs(sentence_pairs)
-      with open(CACHE_FILE, 'w') as f:
-        np.savetxt(CACHE_FILE, self.transl_probs)
-
-
-  ##
-    # Build dict for each vocabulary in which keys are words and their
-    # values are their respective indices. This will allow lookup of
-    # words from row/column in the `transl_probs` & `counts` tables.
-  def build_vocab_indices(self):
-    self.en_vocab_indices = {}
-    self.sp_vocab_indices = {}
-
-    for i in range(0, len(self.en_vocab)):
-      word = self.en_vocab[i]
-      self.en_vocab_indices[word] = i
-    for i in range(0, self.n_sp_words):
-      word = self.sp_vocab[i]
-      self.sp_vocab_indices[word] = i
-
-
-  def top_english_word(self, sp_word):
-    # Deal with unknown words.
-    if sp_word not in self.sp_vocab:  return sp_word
-
-    sp_row = self.sp_vocab_indices[sp_word]
-
-    adjusted_probs = copy.deepcopy(self.transl_probs[sp_row])
-    for i in range(len(adjusted_probs)):
-      adjusted_probs[i] /= self.get_unigram_probability(self.en_vocab[i])
-    i_of_max = np.argmax(adjusted_probs)
-
-    ## TODO: Makes the score worse, so take it out for now. :(
-    # return self.word_with_lowest_edit_dist(sp_word, adjusted_probs)
-
-    return self.en_vocab[i_of_max]  # Top English translation for sp_word
-
-  
-  def word_with_lowest_edit_dist(self, sp_word, adjusted_probs):
-    indices_of_best = []
-    for i in range(2):
-      i_of_best = np.argmax(adjusted_probs)
-      indices_of_best.append(i_of_best)
-      adjusted_probs[i_of_best] = 0
-    best_list = [self.en_vocab[i] for i in indices_of_best]
-    
-    return leve.suggestion(sp_word, best_list, number_of_matches=1)[0][1]
-
-  ##
-    # Initialize transl_probs uniformly. It's table from spanish words to
-    # english words (list of lists) to probability of that english word being
-    # the correct translation. Every translation probability is
-    # initialized to (1/# english words) since every word is equally
-    # likely to be the correct translation.
-  def init_transl_probs(self):
-    # Create matrix uniformly filled with `1*uniform_prob`
-    uniform_prob = 1.0 / self.n_en_words
-    return np.ones((self.n_sp_words, self.n_en_words)) * uniform_prob
-
-
-  # Create the counts table.
-  def init_counts(self):
-    return np.zeros((self.n_sp_words, self.n_en_words))
-
-
-  def train_transl_probs(self, sentence_pairs):
-
-    # Initialize counts and totals to be used in main loop.
-    if PRINT_MSGS: print '\n=== Initializing transl_probs & counts...'
-    transl_probs = self.init_transl_probs()
-    startTime = datetime.now()
-    for x in xrange(0, N_ITERATIONS):
-      if PRINT_MSGS: print '\n=== %d Training translation probabilities...' % (x + 1)
-      if PRINT_MSGS: print 'Time elapsed (BEGIN):   %s' % (str(datetime.now() - startTime))
-      counts = self.init_counts()
-      total_s = [0] * self.n_sp_words
-
-      if PRINT_MSGS: print 'Time elapsed (BEFORE FIRST LOOP):   %s' % (str(datetime.now() - startTime))
-      for pair in sentence_pairs:
-        total_e = [0] * self.n_sp_words
-        sp_sentence, en_sentence = pair[0].split(), pair[1].split()
-
-        ##
-        # Calculating the vocab indices for each word in both sentences
-        # sentences here so there aren't `2ij` lookups within the loops.
-        sp_word_indices = get_word_indices(sp_sentence, self.sp_vocab_indices)
-        en_word_indices = get_word_indices(en_sentence, self.en_vocab_indices)
-
-        # Spanish words are the rows, English words are the columns
-        for e in range(len(en_sentence)):    # Each word in the English sentence
-          en_col = en_word_indices[e]
-          for s in range(len(sp_sentence)):  # Each word in the Spanish sentence
-            sp_row = sp_word_indices[s]
-            total_e[en_col] += transl_probs[sp_row][en_col]
-        
-        for e in range(len(en_sentence)):    # Each word in the English sentence
-          en_col = en_word_indices[e]
-          for s in range(len(sp_sentence)):  # Each word in the Spanish sentence
-            sp_row = sp_word_indices[s]
-            additional_prob = transl_probs[sp_row][en_col] / (1.0*total_e[en_col])
-            counts[sp_row][en_col] += additional_prob
-            total_s[sp_row] += additional_prob
-
-      if PRINT_MSGS: print 'Time elapsed (BEFORE SECOND LOOP):   %s' % (str(datetime.now() - startTime))
-      
-      total_s_reshaped = np.asarray(total_s).reshape(len(total_s), 1)
-      transl_probs = counts / (total_s_reshaped * 1.0)
-      if PRINT_MSGS: print 'Time elapsed (AFTER SECOND LOOP):   %s' % (str(datetime.now() - startTime))
-    return transl_probs
-
-
-  def get_unigram_probability(self, sp_word):
-    return self.en_unigram_counts[sp_word] * (1.0) / self.total_n_en_words
-
-  ##_en # Takes in an array of sentences of sp and en words
-  # returns tuples in the form of (sp sentence, en sentence)
-  def deconstuct_sentences(self, sp_doc, en_doc):
-    if PRINT_MSGS: print '\n=== Deconstructing sentences & building vocabs...'
-    ##
-    # Iterate through all English & Spanish sentences & add each word
-    # to the respective vocabularies.
-    en_vocab, sp_vocab = set(), set()
-    self.en_unigram_counts = collections.defaultdict(lambda:0) 
-    self.total_n_en_words = 0
-    if BUILD_BIGRAMS: self.en_bigram_counts = defaultdict(lambda: 0, {})
-
-    for en_sentence in en_doc:
-      en_tokens = en_sentence.split(' ')
-      for i in range(len(en_tokens)):
-        curr_en_word = en_tokens[i]
-        
-        if BUILD_BIGRAMS:
-          if i+1 < len(en_tokens):
-            bigram = '%s %s' % (en_tokens[i], en_tokens[i+1])
-            self.en_bigram_counts[bigram] += 1
-
-
-        self.en_unigram_counts[curr_en_word] += 1
-        en_vocab.add(curr_en_word)
-        self.total_n_en_words += 1
-    for sp_sentence in sp_doc:
-      sp_tokens = sp_sentence.split(' ')
-      for sp_word in sp_tokens:   sp_vocab.add(sp_word)
-        
-    # Build sorted vocab list.
-    self.en_vocab, self.sp_vocab = list(sorted(en_vocab)), list(sorted(sp_vocab))
-
-    # Save size of the Spanish & English vocabs in self attribute.
-    self.n_en_words, self.n_sp_words = len(self.en_vocab), len(self.sp_vocab)
-
-    # Build list of sentence pair tuples.
-    return [(sp_doc[i], en_doc[i]) for i, sp_sentence in enumerate(sp_doc)]
-
-
-
-def get_word_indices(sentence, vocab_indices):
-  return [vocab_indices[word] for i, word in enumerate(sentence)]
-
-
-
+USE_UNIGRAM_COUNTS = not True
 ##
-# Code for reading and tokenizing a file.
-def get_lines_of_file(filename):
+# This class implements the IBM Model 1 algorithm of Expectation Maximization.
+class M1(object):
+	def __init__(self, filepath, n_iterations):
+		self.start_time = datetime.now()
+		print '\n===== Initializing IBM Model 1... [%s]' % str(self.start_time - self.start_time)
+		sentence_pairs = get_sentence_pairs(filepath)
+
+		##
+		# vocabs['sp'] = alphabetical Spanish vocab list
+		# vocabs['en'] = alphabetical English vocab list
+		self.vocabs = extract_vocabs(sentence_pairs)
+
+		if USE_UNIGRAM_COUNTS:
+			self.en_unigram_counts = get_unigram_counts([p[1] for p in sentence_pairs])
+
+		##
+		# self.vocab_indices['sp'] = maps words to their indices in vocabs['sp']
+		# self.vocab_indices['en'] = maps words to their indices in vocabs['en']
+		self.vocab_indices = extract_vocab_indices(self.vocabs)
+
+		# Trains alignment probabilities for each possible Sp-En pairing.
+		self.probabilities = self.train(sentence_pairs, self.vocabs, n_iterations)
+		
+		# print_matrix(self.vocabs, self.probabilities)
+
+
+	def train(self, sentence_pairs, vocabs, n_iterations):
+		init_prob = 1 / (len(vocabs['en']) * 1.0)
+		probabilities = np.ones( (len(vocabs['sp']), len(vocabs['en'])) ) * init_prob
+		# print_matrix(vocabs, probabilities)
+		for i in range(0, n_iterations):
+			print '\n===== Iteration %d/%d... [%s]' % (i+1, n_iterations, str(datetime.now() - self.start_time))
+	
+			fractnl_counts = np.zeros((len(vocabs['sp']), len(vocabs['en'])))
+			total = [0] * len(vocabs['sp'])
+
+			for sp_tokens, en_tokens in sentence_pairs:
+				sp_tokens = sp_tokens + [ None ]  # Prepend `None` to Spanish sentence list
+				# en_tokens = en_tokens  # Prepend `None` to English sentence list
+				total_sp = [0] * len(vocabs['en'])
+				
+				# Normalize P(a,S|E) values to yield P(a|E,F) values.
+				total_sp = self.normalize(total_sp, en_tokens, sp_tokens, probabilities)
+
+				for en_word in en_tokens:
+					en_i = self.vocab_indices['en'][en_word]
+					for sp_word in sp_tokens:
+						sp_i = self.vocab_indices['sp'][sp_word]
+						additnl_prob = probabilities[sp_i][en_i] / (total_sp[en_i] * 1.0)
+						fractnl_counts[sp_i][en_i] += additnl_prob
+						total[sp_i] += additnl_prob
+
+			total_reshaped = np.asarray(total).reshape(len(total), 1)
+			probabilities = fractnl_counts / (total_reshaped * 1.0)
+
+		return probabilities
+
+
+	def max_prob_alignment(self, sp_word):
+		# If the word isn't in our Spanish vocabulary (and thus doesn't have
+		# a row in the translation probabilities matrix), simply return itself.
+		if sp_word not in self.vocabs['sp']: 	return sp_word
+
+		sp_i = self.vocab_indices['sp'][sp_word]
+		en_candidates = self.probabilities[sp_i]
+
+		if USE_UNIGRAM_COUNTS:
+			en_candidates = copy.deepcopy(self.probabilities[sp_i])
+			#
+			# Scale prob for each word by its frequency.
+			for e in range(len(en_candidates)):
+				en_word = self.vocabs['en'][e]
+				en_candidates[e] = en_candidates[e] * self.en_unigram_counts[en_word]/10000.0
+															# TODO: should multiply by probability
+
+		# Get index of max probability of the English word candidates.
+		i_of_max = np.argmax(en_candidates)
+
+		# Return the highest probability English candidate.
+		return self.vocabs['en'][i_of_max]
+
+
+	def normalize(self, total_sp, en_tokens, sp_tokens, probabilities):
+		for en_word in en_tokens:
+			en_i = self.vocab_indices['en'][en_word]
+			for sp_word in sp_tokens:
+				sp_i = self.vocab_indices['sp'][sp_word]
+				total_sp[en_i] += probabilities[sp_i][en_i]
+		return total_sp
+
+
+def estimate_probs(probabilities, vocabs, total_sp):
+	for i,s in enumerate(vocabs['sp']):
+		for j,e in enumerate(vocabs['en']):
+			probabilities[i][j] = 0 if (total_sp[i] == 0) else probabilities[i][j] / (total_sp[i] * 1.0)
+	return probabilities
+
+
+def extract_vocabs(sentence_pairs):
+	sp_vocab, en_vocab = set([]), set([])
+	for sp_line, en_line in sentence_pairs:
+		sp_vocab |= set(sp_line)
+		en_vocab |= set(en_line)
+
+	sp_vocab.add(None)  # Add null token to the Spanish vocab
+	return {  'sp': sorted(sp_vocab),  'en': sorted(en_vocab)  }
+
+
+def get_unigram_counts(sentences):
+	counts = defaultdict(lambda: 0)
+	for sentence in sentences:
+		for word in sentence:
+			counts[word] += 1
+	return counts
+
+
+def extract_vocab_indices(vocabs):
+	sp_vocab_indicies = {  sp_word:i for i,sp_word in enumerate(vocabs['sp'])  }
+	en_vocab_indicies = {  en_word:i for i,en_word in enumerate(vocabs['en'])  }
+	return {  'sp': sp_vocab_indicies,  'en': en_vocab_indicies  }
+
+
+def get_sentence_pairs(filepath):
+	sp_file = '%s.es' % (filepath)
+	en_file = '%s.en' % (filepath)
+
+	sp_lines = get_lines_of_file(sp_file)
+	en_lines = get_lines_of_file(en_file)
+
+	n_lines = len(sp_lines) # also equal to len(en_lines)
+
+	return [(sp_lines[i], en_lines[i]) for i in range(n_lines)]
+
+
+def print_matrix(vocabs, probabilities):
+	col_width = 10
+	column = '{:<%d}' % col_width
+	lines = []
+	
+	# Build header row (English words, underlined).
+	headers = column.format('')
+	for e, en_word in enumerate(vocabs['en']):
+		headers += column.format(en_word)
+	lines += [headers]
+	lines += [column.format('') + '-'*col_width*len(vocabs['en'])]
+	
+	# Build each row (sp_word:  0.##  0.##  0.##  ...).
+	for s, sp_word in enumerate(vocabs['sp']):
+		row = ''
+		for prob in probabilities[s]:
+			row += column.format(round(prob, 4))
+		lines += [column.format(sp_word) + row]
+
+	# Print the table.
+	for l in lines:			print l
+
+
+def get_lines_of_file(filepath):
+  f = codecs.open(filepath, encoding='utf-8')
   lines = []
-  with open(filename,'r') as f: 
-    for line in f:
-      ##
-      # First we lowercase the line in order to treat capitalized
-      # and non-capitalized instances of a single word the same.
-      ##
-      # Then, repr() forces the output into a string literal UTF-8
-      # format, with characters such as '\xc3\x8d' representing
-      # special characters not found in typical ASCII.
-      line = repr(line.lower())
-      
-      ##
-      # Replace all instances of UTF-8 character codes with
-      # uppercase letters of the nearest ASCII equivalent. For
-      # instance, 'á' becomes '\\xc3\\xa1' becomes 'A'. The
-      # purpose of making these special characters uppercase is
-      # to differentiate them from the rest of the non-special
-      # characters, which are all lowercase.
-      for utf8_code, replacement_char in UTF_SPECIAL_CHARS.items():
-        line = line.replace(utf8_code, replacement_char)
-      
-      # Remove any non-whitespace, non-alphabetic characters.
-      line = re.sub(r'[^A-z&; ]', '', line)
-      
-      # Substitute multiple whitespace with single whitespace, then
-      # append the cleaned line to the list.
-      lines.append(' '.join(line.split()))
+  for line in f:
+  	line = line.encode('utf-8').lower()
+  	for ch in SPECIAL_CHARS:
+  		line = line.replace(ch, SPECIAL_CHARS[ch])
+  	lines.append(line.split())
   return lines
 
-
-def main():
-  m = M1()
-
-
-if __name__ == "__main__":
-  startTime = datetime.now()
-  main()
-  if PRINT_MSGS: print 'Time elapsed:   %s' % (str(datetime.now() - startTime))
-
-  

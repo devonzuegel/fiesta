@@ -1,146 +1,141 @@
 # -*- coding: utf-8 -*-
 
-import sys, getopt, os, math, collections, copy, re, nltk
+import sys, getopt, os, math, collections, copy, codecs, re, nltk, string
 from datetime import datetime
 from bisect import bisect_left
 from nltk.tag import pos_tag
 from IBMModel1 import M1
 
-UTF_SPECIAL_CHARS = {
-  '\\xc2\\xa1' : '',
-  '\\xc2\\xbf' : '',
-  '\\xc3\\x81' : 'A',
-  '\\xc3\\x89' : 'E',
-  '\\xc3\\x8d' : 'I',
-  '\\xc3\\x91' : 'N',
-  '\\xc3\\x93' : 'O',
-  '\\xc3\\x9a' : 'U',
-  '\\xc3\\x9c' : 'U',
-  '\\xc3\\xa1' : 'A',
-  '\\xc3\\xa9' : 'E',
-  '\\xc3\\xad' : 'I',
-  '\\xc3\\xb1' : 'N',
-  '\\xc3\\xb3' : 'O',
-  '\\xc3\\xba' : 'U',
-  '\\xc3\\xbc' : 'U',
-  '\\xf3' : 'O',
-  '\'' : '',
-  '\\n' : '',
+SPECIAL_CHARS = {
+  '\xc3\x81' : 'A',
+  '\xc3\x89' : 'E',
+  '\xc3\x8d' : 'I',
+  '\xc3\x91' : 'N',
+  '\xc3\x93' : 'O',
+  '\xc3\x9a' : 'U',
+  '\xc3\x9c' : 'U',
+  '\xc3\xa1' : 'A',
+  '\xc3\xa9' : 'E',
+  '\xc3\xad' : 'I',
+  '\xc3\xb1' : 'N',
+  '\xc3\xb3' : 'O',
+  '\xc3\xba' : 'U',
+  '\xc3\xbc' : 'U',
+  '\xc2\xbf' : '', # upside down question mark
+  '\xc2\xa1' : '', # upside down exclamation mark
+  '\n' : ''
 }
-PATH_TO_TRAIN = './es-en/train/'
-SP_PUNCTN = set(['¿', '¡'])
-PRINT_MSGS = not True
 
-def main(path, filename):
-  m1 = M1()
+USE_EXTENSIONS = True
 
-  # Get sp_sentences to translate out of file (no tokenizing)
-  sp_sentences = get_lines_of_file('%s%s.es' % (path, filename))
-  goal_translns = get_lines_of_file('%s%s.en' % (path, filename))
-
-  # Opens file into which will dump our translations line-by-line.
-  translns_file = open('%s_translations' % filename, 'w')
-
-  ##
-  # Asks user if they only want to use basic IBM Model 1 or also use noun-adj
-  # flipping + bigram ordering to refine their results.
-  user_response = raw_input('\nTranslate with just IBM Model 1? (y/n) ').lower()
-  just_ibm_m1 = user_response == 'y'
-
-  print 'Translating sentences...'
+def translate_sentences(sp_sentences, m1):
+  translns_file = open('%s_translations' % FILENAME, 'w')
+  print '\n== Translating to English...'
   for i, sp_sentence in enumerate(sp_sentences):
-    sp_sentence = nltk.word_tokenize(sp_sentence.decode("utf-8"))
-    translate_sentence(sp_sentence, m1, translns_file, goal_translns[i], just_ibm_m1)
 
+    translate_sentence(sp_sentence, m1, translns_file)
+    
+    if (i+1)%200 == 0:   
+      print '   %d of %d sentences translated' % (i+1, len(sp_sentences))
+  
+  print '\n== ... Done translating!\n'
   translns_file.close()
 
-def get_lines_of_file(filename):
-  with open(filename,'r') as f:
-    return [line for line in f]
+
+##
+# Given a sentence string, returns a list of tuples containing 1: each word
+# and 2: its corresponding part-of-speech.
+def get_POS(s):
+  v = os.popen('echo "' + s + '" | tree-tagger/cmd/tree-tagger-spanish').read()
+  tagged = []
+  for line in v.split('\n'):
+    if line != '': 
+      parts = line.split()
+      tagged.append( (parts[0], parts[1]) )
+  return tagged
 
 
-def tokenize_sp_stemmed(sp_sentence):
-  ##
-    # First we lowercase the line in order to treat capitalized
-    # and non-capitalized instances of a single word the same.
-  ##
-    # Then, repr() forces the output into a string literal UTF-8
-    # format, with characters such as '\xc3\x8d' representing
-    # special characters not found in typical ASCII.
-  line = repr(sp_sentence.lower())
-
-  ##
-    # Replace all instances of UTF-8 character codes with
-    # uppercase letters of the nearest ASCII equivalent. For
-    # instance, 'á' becomes '\\xc3\\xa1' becomes 'A'. The
-    # purpose of making these special characters uppercase is
-    # to differentiate them from the rest of the non-special
-    # characters, which are all lowercase.
-  for utf8_code, replacement_char in UTF_SPECIAL_CHARS.items():
-    line = line.replace(utf8_code, replacement_char)
-
-  ##
-    # Substitute multiple whitespace with single whitespace, then
-    # append the cleaned line to the list.
-  return ' '.join(line.split())
-
-def translate_sentence(sp_sentence, m1, translns_file, goal_transln, just_ibm_m1):
-  if PRINT_MSGS: print '\nSpanish:  %s' % sp_sentence.replace('\n', '')
-
-  en_translation = ''
+def translate_sentence(sp_sentence, m1, translns_file):
+  en_transln = ''
 
   for sp_word in sp_sentence:
-    sp_word = tokenize_sp_stemmed(sp_word.encode('utf-8'))
+    en_word = m1.max_prob_alignment(sp_word)
+    
+    if sp_word in string.punctuation:
+      en_transln += '%s ' % (sp_word)
+    elif en_word is not None:  
+      en_transln += '%s ' % (en_word)
 
-    if (sp_word not in m1.sp_vocab) and (sp_word not in SP_PUNCTN):
-      en_translation += '%s ' % sp_word     # TODO: this part is super bad
-    else:
-      top_english_word = m1.top_english_word(sp_word)
-      if top_english_word != None:
-        en_translation += '%s ' % m1.top_english_word(sp_word)
+  if USE_EXTENSIONS:
+      en_transln = re.sub(
+        r'(.*) (.*?) of the (.*?) (.*)', 
+        r'\g<1> \g<3> \g<2> \g<4>', 
+        en_transln
+      )
+      
+  translns_file.write(en_transln + '\n')
 
-  if not just_ibm_m1:
-    en_translation = order_sentence(en_translation.encode('utf-8'))
-  
-  translns_file.write(en_translation + '\n')
-  if PRINT_MSGS: print 'English:  %s' % en_translation
-  if PRINT_MSGS: print '   Goal:  %s' % goal_transln
 
-def order_sentence(en_translation):
-  return flip_nouns_adjs(en_translation)
+def get_lines_of_file(filepath, SPLIT=False):
+  f = codecs.open(filepath, encoding='utf-8')
+  lines = []
+  for line in f:
+    line = line.encode('utf-8').lower()
+    for ch in SPECIAL_CHARS:
+      line = line.replace(ch, SPECIAL_CHARS[ch])
+    if SPLIT: lines.append(line.split())
+    else:     lines.append(line)
+  return lines
 
-# For each adjective, if the prev word is a noun, flip the two.
-def flip_nouns_adjs(en_transln):
-  # Tokenizes `en_transln` then tags each token
-  tagged = pos_tag(nltk.word_tokenize(en_transln.decode("utf-8")))
 
-  for i in range(1, len(tagged)):
-    prev_tupl, curr_tupl = tagged[i-1], tagged[i]
-    prev_POS,  curr_POS  = prev_tupl[1], curr_tupl[1]
+def is_noun(POS):
+  return POS == 'NN' or POS == 'NC' or POS == 'NP'
 
-    prev_is_noun = prev_POS=='NN' or prev_POS=='NNS' or prev_POS=='NNP' or prev_POS=='NNPS'
-    curr_is_adjv = curr_POS == 'JJ'
-    # If you see an adjective after a noun, flip them.
-    if curr_is_adjv and prev_is_noun:
-      tagged[i-1] = curr_tupl
-      tagged[i] = prev_tupl
 
-  return ' '.join([t[0].encode('utf-8') for t in tagged])
+def is_adj(POS):
+  return POS=='ADJ' or POS=='JJ'
+
+
+def flip_nouns_and_adjs(sp_sentences):
+
+  sp_sentences_tagged = [get_POS(s) for s in sp_sentences]
+
+  flipped_sentences = []
+  for s in sp_sentences_tagged:
+    for i in range(0, len(s) - 1):
+      curr_pos, next_pos = s[i][1], s[i+1][1]
+      if is_noun(curr_pos) and is_adj(next_pos):
+        curr_word, next_word = s[i], s[i+1]
+        s[i], s[i+1] = next_word, curr_word
+    flipped_sentences.append([tup[0] for tup in s])
+
+  return flipped_sentences
 
 
 if __name__ == "__main__":
   startTime = datetime.now()
   if len(sys.argv) < 2:
-    print 'Requires name of file to translate. Aborting...'
+    print '\nRequires the path to and name of file (without .en/.es extension) to translate:'
+    print 'Usage:  $ python translate.py ./PATH/TO/FILE/ FILENAME'
+    print 'Aborting...'
   else:
-    path = sys.argv[1]
-    filename = sys.argv[2]
-    main(path, filename)
-    
-    # Print bleu_score
-    bleu_cmd = 'python bleu_score.py %s%s.en %s_translations' % (path, filename, filename)
-    os.system(bleu_cmd)
-    
-    print '\n[ Time elapsed: ]   %s' % (str(datetime.now() - startTime))
+    filepath_to_train = './es-en/train/' + raw_input('\n== Filename to train on? ')
+    PATH, FILENAME = sys.argv[1], sys.argv[2]
 
-  
+    # Get sp_sentences to translate out of file (no tokenizing)
+    sp_sentences = get_lines_of_file('%s%s.es' % (PATH, FILENAME), not USE_EXTENSIONS)
+    
+    if USE_EXTENSIONS:
+      sp_sentences = flip_nouns_and_adjs(sp_sentences)
+
+    # Get goal_sentences to compare translations to out of file (no tokenizing)
+    goal_translns = get_lines_of_file('%s%s.en' % (PATH, FILENAME), True)
+
+    # Initialize IBM Model 1 class.
+    n_iterations = int(raw_input('\n== # of iterations? '))
+    m1 = M1(filepath_to_train, n_iterations)
+    
+    translate_sentences(sp_sentences, m1)
+    os.system('python bleu_score.py %s%s.en %s_translations' % (PATH, FILENAME, FILENAME))
+
+  print '\n[ Time elapsed: ]   %s\n' % (str(datetime.now() - startTime))
