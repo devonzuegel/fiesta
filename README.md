@@ -5,19 +5,19 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 ## Table of Contents ##
 - [Overview](#overview)
-    - [BLEU Scores](#bleu-scores)
-    - [Running Fiesta](#running-fiesta)
-    - [Structure of this repo](#structure-of-this-repo)
+    + [BLEU Scores](#bleu-scores)
+    + [Running Fiesta](#running-fiesta)
+    + [Structure of this repo](#structure-of-this-repo)
 - [Spanish-specific challenges](#spanish-specific-challenges)
 - [Improvement upon baseline strategy](#improvement-upon-baseline-strategy)
 - [Other modifications](#other-modifications)
 - [Error Analysis](#error-analysis)
 - [IBM Model 1](#ibm-model-1)
-    - [Pseudocode](#pseudocode)
+    + [Pseudocode](#pseudocode)
 - [Comparative Analysis with Google Translate](#comparative-analysis-with-google-translate)
-    - [Spanish Sentences](#spanish-sentences)
-    - [Our Output](#our-output)
-    - [Google Translate Output](#google-translate-output)
+    + [Spanish Sentences](#spanish-sentences)
+    + [Our Output](#our-output)
+    + [Google Translate Output](#google-translate-output)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
