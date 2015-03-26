@@ -12,7 +12,7 @@
 - [Improvement upon baseline strategy](#improvement-upon-baseline-strategy)
 - [Other modifications](#other-modifications)
 - [Error Analysis](#error-analysis)
-  - [IBM Model 1](#ibm-model-1)
+- [IBM Model 1](#ibm-model-1)
     - [Pseudocode](#pseudocode)
 - [Comparative Analysis with Google Translate](#comparative-analysis-with-google-translate)
     - [Spanish Sentences](#spanish-sentences)
